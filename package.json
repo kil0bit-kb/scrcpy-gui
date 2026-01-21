@@ -1,0 +1,26 @@
+{
+  "name": "scrcpy-gui",
+  "version": "2026.1.21",
+  "description": "Windows GUI for Scrcpy",
+  "author": "KB",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --windows"
+  },
+  "build": {
+    "appId": "com.scrcpy.gui",
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.ico"
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}
