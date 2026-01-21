@@ -1,12 +1,72 @@
-Scrcpy GUI by KBA modern, high-performance Windows GUI for the scrcpy engine. This application allows you to mirror and control Android devices easily with a professional user interface built on Electron and Tailwind CSS.🚀 FeaturesMirror \& Control: High-performance, low-latency screen mirroring.Wireless Connection: Connect to devices via TCP/IP (WiFi).Video Customization: Adjust resolution, bitrate, FPS, and orientation on the fly.APK Installer: Simply drag and drop .apk files into the GUI to install them.Desktop Mode: Support for virtual displays (Android 13+).Shortcut Reference: Built-in guide for essential scrcpy keyboard commands.Portable Setup: Point the app to your local Scrcpy folder to use bundled ADB/Scrcpy binaries.🛠️ Installation \& SetupClone the repository:git clone \[https://github.com/kil0bit-kb/scrcpy-gui.git](https://github.com/kil0bit-kb/scrcpy-gui.git)
+Scrcpy GUI by KB
 
+A modern, high-performance desktop interface for the scrcpy engine. This GUI allows you to mirror and control Android devices easily, offering a streamlined experience for developers and power users.
+
+🚀 Features
+
+Mirror & Control: Low-latency screen mirroring and full device control.
+
+Wireless Connectivity: Easily connect to devices via TCP/IP.
+
+Video Engine Customization: Adjust resolution (up to 1080p), FPS (up to 120), and bitrate (up to 24 Mbps) on the fly.
+
+Quick APK Installer: Drag and drop any .apk file into the sidebar to install it instantly on the active device.
+
+Mirroring Presets: Toggle settings like Stay Awake, Screen Off, System Audio, and Desktop Mode.
+
+Shortcut Reference: Built-in side panel for quick access to Alt key commands.
+
+Portable & Local Support: Point the app to your local Scrcpy folder to use bundled binaries without installing them to your system path.
+
+🛠️ Getting Started
+
+Prerequisites
+
+Official Scrcpy Binaries (Recommended v2.0+)
+
+ADB Drivers installed on your Windows machine.
+
+USB Debugging enabled on your Android device.
+
+Installation
+
+Clone the repository:
+
+git clone [https://github.com/kil0bit-kb/scrcpy-gui.git](https://github.com/kil0bit-kb/scrcpy-gui.git)
 cd scrcpy-gui
 
-Install dependencies:npm install
 
-Run the application:npm start
+Install dependencies:
 
-📦 Building the EXETo create a portable Windows executable with the custom icon:npm run build
+npm install
 
-The output will be located in the dist/ folder.🔗 LinksGitHub: kil0bit-kbYouTube: kilObitWebsite: kil0bit.blogspot.com📝 RequirementsScrcpy binaries (v2.0+ recommended).ADB Drivers installed on Windows.Android device with USB Debugging enabled.Made with ❤️ by KB
 
+Run the app:
+
+npm start
+
+
+📦 Building the Executable
+
+To create a portable .exe with your custom branding and icon:
+
+Ensure your icon is placed at build/icon.ico.
+
+Run the build script:
+
+npm run build
+
+
+The output will be available in the dist/ folder.
+
+🔗 Official Links
+
+GitHub: kil0bit-kb
+
+YouTube: @kilObit
+
+Website: kil0bit.blogspot.com
+
+Scrcpy: Official Repository
+
+Developed with ❤️ by KB
