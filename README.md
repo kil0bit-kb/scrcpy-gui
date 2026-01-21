@@ -1,4 +1,4 @@
-# Scrcpy GUI
+# scrcpy GUI
 
 A **modern, high‑performance desktop interface** for the **scrcpy** engine. Scrcpy GUI lets you mirror and control Android devices with **minimal latency**, **powerful customization**, and a **clean professional UI**—built for speed, reliability, and daily use.
 
