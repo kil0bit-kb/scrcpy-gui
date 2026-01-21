@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { spawn, exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -12,6 +12,9 @@ function createWindow() {
         height: 900,
         backgroundColor: '#0f172a',
         autoHideMenuBar: true,
+        // This sets the icon for the window and taskbar at runtime
+        // Using path.resolve to ensure absolute pathing
+        icon: path.join(__dirname, 'build/icon.ico'), 
         webPreferences: {
             nodeIntegration: true, 
             contextIsolation: false 
@@ -72,8 +75,6 @@ ipcMain.on('run-scrcpy', (event, config) => {
     if (!config.audioEnabled) args.push('--no-audio');
     if (config.virtualDisplay) args.push('--new-display=1920x1080');
     
-    // FIX: Scrcpy v3.0+ compatibility
-    // Changed --rotation to --orientation
     if (config.rotation !== "0") {
         args.push('--orientation', config.rotation);
     }
@@ -96,6 +97,7 @@ ipcMain.on('run-scrcpy', (event, config) => {
 });
 
 ipcMain.on('stop-scrcpy', () => { if (scrcpyProcess) scrcpyProcess.kill(); });
+
 ipcMain.handle('select-folder', async () => {
     const result = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] });
     return result.canceled ? null : result.filePaths[0];
