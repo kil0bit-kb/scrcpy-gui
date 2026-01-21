@@ -1,72 +1,153 @@
-Scrcpy GUI by KB
+# Scrcpy GUI
 
-A modern, high-performance desktop interface for the scrcpy engine. This GUI allows you to mirror and control Android devices easily, offering a streamlined experience for developers and power users.
+A **modern, high‑performance desktop interface** for the **scrcpy** engine. Scrcpy GUI lets you mirror and control Android devices with **minimal latency**, **powerful customization**, and a **clean professional UI**—built for speed, reliability, and daily use.
 
-🚀 Features
+---
 
-Mirror & Control: Low-latency screen mirroring and full device control.
+## ✨ Highlights
 
-Wireless Connectivity: Easily connect to devices via TCP/IP.
+* ⚡ **Ultra‑Low Latency Mirroring** powered by scrcpy
+* 🎮 **Full Device Control** using mouse and keyboard
+* 📡 **Wireless (TCP/IP) & USB Connectivity**
+* 🎥 **Advanced Video Controls** (Resolution, FPS, Bitrate)
+* 📦 **Instant APK Installer** via drag & drop
+* 🎛️ **One‑Click Mirroring Presets**
+* 🧩 **Portable & Local Scrcpy Support**
 
-Video Engine Customization: Adjust resolution (up to 1080p), FPS (up to 120), and bitrate (up to 24 Mbps) on the fly.
+---
 
-Quick APK Installer: Drag and drop any .apk file into the sidebar to install it instantly on the active device.
+## 🚀 Features
 
-Mirroring Presets: Toggle settings like Stay Awake, Screen Off, System Audio, and Desktop Mode.
+### 🪞 Mirror & Control
 
-Shortcut Reference: Built-in side panel for quick access to Alt key commands.
+Experience smooth, real‑time Android screen mirroring with complete input control.
 
-Portable & Local Support: Point the app to your local Scrcpy folder to use bundled binaries without installing them to your system path.
+### 📶 Wireless Connectivity
 
-🛠️ Getting Started
+Connect your Android device wirelessly using TCP/IP with just a few clicks.
 
-Prerequisites
+### 🎞️ Video Engine Customization
 
-Official Scrcpy Binaries (Recommended v2.0+)
+Fine‑tune your streaming experience:
 
-ADB Drivers installed on your Windows machine.
+* Resolution up to **1080p**
+* Frame rate up to **120 FPS**
+* Bitrate up to **24 Mbps**
 
-USB Debugging enabled on your Android device.
+### 📥 Quick APK Installer
 
-Installation
+Simply **drag and drop any `.apk` file** into the sidebar to install it instantly on the connected device.
+
+### 🎚️ Mirroring Presets
+
+Toggle powerful options on the fly:
+
+* Stay Awake
+* Screen Off while Mirroring
+* System Audio
+* Desktop Mode
+
+### ⌨️ Shortcut Reference Panel
+
+Built‑in sidebar displaying **Alt‑key shortcuts** for faster navigation and control.
+
+### 🧳 Portable & Local Support
+
+Use your **local scrcpy binaries** without adding them to the system PATH—perfect for portable setups.
+
+---
+
+## 🛠️ Getting Started
+
+### ✅ Prerequisites
+
+* **Official scrcpy binaries** (Recommended: v2.0+)
+  👉 [https://github.com/Genymobile/scrcpy/releases](https://github.com/Genymobile/scrcpy/releases)
+* **USB Debugging** enabled on your Android device
+
+---
+
+### 📥 Installation
 
 Clone the repository:
 
-git clone [https://github.com/kil0bit-kb/scrcpy-gui.git](https://github.com/kil0bit-kb/scrcpy-gui.git)
+```bash
+git clone https://github.com/kil0bit-kb/scrcpy-gui.git
 cd scrcpy-gui
-
+```
 
 Install dependencies:
 
+```bash
 npm install
+```
 
+Run the application:
 
-Run the app:
-
+```bash
 npm start
+```
 
+---
 
-📦 Building the Executable
+## 📦 Building the Executable
 
-To create a portable .exe with your custom branding and icon:
+Create a **portable Windows executable** with custom branding:
 
-Ensure your icon is placed at build/icon.ico.
+1. Place your app icon at:
 
-Run the build script:
+   ```
+   build/icon.ico
+   ```
 
-npm run build
+2. Run the build command:
 
+   ```bash
+   npm run build
+   ```
 
-The output will be available in the dist/ folder.
+3. Find the output in the:
 
-🔗 Official Links
+   ```
+   dist/
+   ```
 
-GitHub: kil0bit-kb
+   folder.
 
-YouTube: @kilObit
+---
 
-Website: kil0bit.blogspot.com
+## ⬇️ Prebuilt Releases
 
-Scrcpy: Official Repository
+If you **don’t want to build the app yourself**, you can download **ready-to-use builds** directly from the **Releases** page.
 
-Developed with ❤️ by KB
+👉 [https://github.com/kil0bit-kb/scrcpy-gui/releases](https://github.com/kil0bit-kb/scrcpy-gui/releases)
+
+These builds include all required files and are ideal for users who just want to **download and run** the application without installing Node.js or dependencies.
+
+---
+
+## 🧩 Built With
+
+* **scrcpy** – Core mirroring engine
+* **Node.js & npm** – Dependency management
+* **Electron** – Cross‑platform desktop framework
+
+---
+
+## 🤝 Contributing
+
+Contributions, suggestions, and improvements are welcome!
+
+* Fork the repository
+* Create a feature branch
+* Submit a pull request
+
+---
+
+## ⭐ Support the Project
+
+If you find Scrcpy GUI useful, please consider giving it a **star ⭐ on GitHub**. Your support helps the project grow!
+
+---
+
+**Developed by KB** 🚀
