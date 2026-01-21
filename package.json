@@ -10,17 +10,24 @@
   },
   "build": {
     "appId": "com.scrcpy.gui",
+    "productName": "Scrcpy GUI",
     "win": {
-      "target": "portable",
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
     },
     "directories": {
       "output": "dist"
     }
   },
-  "dependencies": {},
   "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1"
+    "electron": "^40.0.0",
+    "electron-builder": "^26.5.0"
   }
 }
