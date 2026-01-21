@@ -23,26 +23,21 @@ function createWindow() {
 
 /**
  * Helper to get the correct path for a binary (adb or scrcpy)
- * If a custom path is set, it looks there. Otherwise, it uses the system path.
  */
 function getBinaryPath(binaryName, customFolder) {
     if (customFolder) {
         const fullPath = path.join(customFolder, binaryName.endsWith('.exe') ? binaryName : `${binaryName}.exe`);
         if (fs.existsSync(fullPath)) return `"${fullPath}"`;
     }
-    return binaryName; // Fallback to system PATH
+    return binaryName;
 }
 
-// 1. Check if Scrcpy Binary exists
 ipcMain.handle('check-scrcpy', async (event, customPath) => {
     return new Promise((resolve) => {
         const exePath = getBinaryPath('scrcpy', customPath);
-        
-        // If it's a quoted path (custom), check file existence directly
         if (exePath.includes('"')) {
             resolve({ found: true, message: 'Local Scrcpy Found' });
         } else {
-            // Check system path via version command
             exec('scrcpy --version', (error) => {
                 if (error) resolve({ found: false, message: 'Scrcpy not found' });
                 else resolve({ found: true, message: 'Scrcpy ready (System)' });
@@ -51,54 +46,18 @@ ipcMain.handle('check-scrcpy', async (event, customPath) => {
     });
 });
 
-// 2. Get Device List (Using local ADB if custom path is set)
 ipcMain.handle('get-devices', async (event, customPath) => {
     return new Promise((resolve) => {
         const adbPath = getBinaryPath('adb', customPath);
-
         exec(`${adbPath} devices`, (error, stdout) => {
-            if (error) {
-                return resolve({ error: true, message: 'ADB error. Check folder or drivers.' });
-            }
-            
+            if (error) return resolve({ error: true, message: 'ADB error. Check folder.' });
             const lines = stdout.split('\n');
-            const devices = lines
-                .slice(1)
+            const devices = lines.slice(1)
                 .filter(line => line.includes('\tdevice'))
                 .map(line => line.split('\t')[0].trim());
-            
             resolve({ error: false, devices });
         });
     });
-});
-
-// 3. Wireless Connect
-ipcMain.handle('adb-connect', async (event, { ip, customPath }) => {
-    return new Promise((resolve) => {
-        const adbPath = getBinaryPath('adb', customPath);
-        exec(`${adbPath} connect ${ip}`, (error, stdout) => {
-            if (error) resolve({ success: false, message: error.message });
-            else resolve({ success: true, message: stdout.trim() });
-        });
-    });
-});
-
-// 4. APK Installation
-ipcMain.handle('install-apk', async (event, { device, filePath, customPath }) => {
-    return new Promise((resolve) => {
-        if (!device) return resolve({ success: false, message: 'No device selected' });
-        const adbPath = getBinaryPath('adb', customPath);
-        exec(`${adbPath} -s ${device} install "${filePath}"`, (error, stdout, stderr) => {
-            if (error) resolve({ success: false, message: stderr || error.message });
-            else resolve({ success: true, message: stdout.trim() });
-        });
-    });
-});
-
-ipcMain.handle('select-folder', async () => {
-    const result = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] });
-    if (result.canceled) return null;
-    return result.filePaths[0];
 });
 
 ipcMain.on('run-scrcpy', (event, config) => {
@@ -112,11 +71,13 @@ ipcMain.on('run-scrcpy', (event, config) => {
     if (config.turnOff) args.push('-S');
     if (!config.audioEnabled) args.push('--no-audio');
     if (config.virtualDisplay) args.push('--new-display=1920x1080');
-    if (config.showTouch) args.push('-t');
-    if (config.alwaysOnTop) args.push('--always-on-top');
-    if (config.rotation !== "0") args.push('--rotation', config.rotation);
+    
+    // FIX: Scrcpy v3.0+ compatibility
+    // Changed --rotation to --orientation
+    if (config.rotation !== "0") {
+        args.push('--orientation', config.rotation);
+    }
 
-    // Get executable path (quoted to handle spaces in folder names)
     let executable = getBinaryPath('scrcpy', config.scrcpyPath).replace(/"/g, '');
 
     scrcpyProcess = spawn(executable, args);
@@ -134,8 +95,10 @@ ipcMain.on('run-scrcpy', (event, config) => {
     });
 });
 
-ipcMain.on('stop-scrcpy', () => {
-    if (scrcpyProcess) scrcpyProcess.kill();
+ipcMain.on('stop-scrcpy', () => { if (scrcpyProcess) scrcpyProcess.kill(); });
+ipcMain.handle('select-folder', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] });
+    return result.canceled ? null : result.filePaths[0];
 });
 
 app.whenReady().then(createWindow);
