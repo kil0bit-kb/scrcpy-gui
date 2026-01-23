@@ -24,10 +24,6 @@ A **modern, high‑performance desktop interface** for the **scrcpy** engine. Sc
 
 Experience smooth, real‑time Android screen mirroring with complete input control.
 
-### 📶 Wireless Connectivity
-
-Connect your Android device wirelessly using TCP/IP with just a few clicks.
-
 ### 🎞️ Video Engine Customization
 
 Fine‑tune your streaming experience:
