@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const { spawn, exec } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -12,8 +12,6 @@ function createWindow() {
         height: 900,
         backgroundColor: '#0f172a',
         autoHideMenuBar: true,
-        // This sets the icon for the window and taskbar at runtime
-        // Using path.resolve to ensure absolute pathing
         icon: path.join(__dirname, 'build/icon.ico'), 
         webPreferences: {
             nodeIntegration: true, 
@@ -24,9 +22,6 @@ function createWindow() {
     mainWindow.loadFile('index.html');
 }
 
-/**
- * Helper to get the correct path for a binary (adb or scrcpy)
- */
 function getBinaryPath(binaryName, customFolder) {
     if (customFolder) {
         const fullPath = path.join(customFolder, binaryName.endsWith('.exe') ? binaryName : `${binaryName}.exe`);
@@ -63,6 +58,16 @@ ipcMain.handle('get-devices', async (event, customPath) => {
     });
 });
 
+ipcMain.handle('adb-connect', async (event, { ip, customPath }) => {
+    return new Promise((resolve) => {
+        const adbPath = getBinaryPath('adb', customPath);
+        exec(`${adbPath} connect ${ip}`, (error, stdout) => {
+            if (error) resolve({ success: false, message: error.message });
+            else resolve({ success: true, message: stdout.trim() });
+        });
+    });
+});
+
 ipcMain.on('run-scrcpy', (event, config) => {
     if (scrcpyProcess) return;
 
@@ -73,8 +78,13 @@ ipcMain.on('run-scrcpy', (event, config) => {
     if (config.stayAwake) args.push('-w');
     if (config.turnOff) args.push('-S');
     if (!config.audioEnabled) args.push('--no-audio');
-    if (config.virtualDisplay) args.push('--new-display=1920x1080');
     
+    if (config.virtualDisplay) {
+        const vdSettings = `${config.vdWidth}x${config.vdHeight}/${config.vdDpi}`;
+        args.push(`--new-display=${vdSettings}`);
+    }
+    
+    // Scrcpy v3.0+ uses --orientation instead of --rotation
     if (config.rotation !== "0") {
         args.push('--orientation', config.rotation);
     }
