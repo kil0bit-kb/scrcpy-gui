@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scrcpy Desktop GUI</title>
+    <title>Scrcpy GUI 2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; overflow-x: hidden; }
         .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); transition: all 0.2s ease; }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+        .btn-primary { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); transition: all 0.2s ease; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); }
         .btn-stop { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); transition: all 0.2s ease; }
         .btn-stop:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); }
         .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; }
@@ -18,36 +18,36 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
         kbd { background-color: #1e293b; border-radius: 4px; padding: 2px 5px; font-family: monospace; font-size: 0.7rem; border: 1px solid #334155; color: #cbd5e1; }
-        #dropZone { border: 2px dashed rgba(59, 130, 246, 0.3); transition: all 0.2s ease; }
-        #dropZone.drag-active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); transform: scale(1.01); }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        input[type="number"], input[type="text"] { background: #0f172a; border: 1px solid #334155; border-radius: 4px; padding: 6px 10px; color: #f1f5f9; outline: none; }
+        input:focus { border-color: #a855f7; }
         .animate-spin-custom { animation: spin 1s linear infinite; }
-        .social-link { transition: all 0.2s ease; }
-        .social-link:hover { transform: translateY(-2px); color: #3b82f6; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .social-link { transition: all 0.2s ease; cursor: pointer; }
+        .social-link:hover { transform: translateY(-2px); color: #a855f7; }
     </style>
 </head>
 <body class="p-6">
     <div class="max-w-7xl mx-auto space-y-6">
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
             <div>
-                <h1 class="text-2xl font-bold tracking-tight">scrcpy <span class="text-blue-500">GUI</span> <span class="text-white text-[10px] align-top ml-0.5 font-bold tracking-tighter">by KB</span></h1>
+                <h1 class="text-2xl font-bold tracking-tight">scrcpy <span class="text-purple-500">GUI</span> <span class="text-white text-[10px] align-top ml-0.5 font-bold tracking-tighter">by KB</span></h1>
                 <p class="text-slate-400 text-xs uppercase tracking-widest font-medium">Mirror & Control Android Devices Easily</p>
             </div>
             <div class="flex flex-wrap gap-3 items-center">
                 <div class="glass px-4 py-2 rounded-xl flex items-center gap-3">
                     <div class="flex flex-col">
                         <span class="text-[10px] uppercase font-bold text-slate-500 mb-1">Binary Status</span>
-                        <div id="pathDisplay" class="text-xs font-mono font-bold">Validating...</div>
+                        <div id="pathDisplay" class="text-xs font-mono font-bold text-yellow-500">Checking...</div>
                     </div>
                     <div class="flex gap-1">
                         <button onclick="openLink('https://github.com/Genymobile/scrcpy/releases')" class="p-1 hover:text-green-400" title="Download Official Scrcpy"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg></button>
-                        <button id="setPath" class="p-1 hover:text-blue-400" title="Select Folder"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg></button>
+                        <button id="setPath" class="p-1 hover:text-purple-400" title="Select Folder"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg></button>
                         <button id="resetPath" class="p-1 hover:text-red-400" title="Reset Path"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                     </div>
                 </div>
                 <div class="glass px-4 py-3 rounded-xl text-sm flex items-center gap-3">
                     <span id="statusDot" class="status-dot bg-yellow-500"></span>
-                    <span id="statusText" class="font-semibold">ADB: Init</span>
+                    <span id="statusText" class="font-semibold text-slate-300">ADB: Init</span>
                 </div>
             </div>
         </header>
@@ -56,8 +56,8 @@
             <aside class="lg:col-span-3 space-y-4">
                 <div class="glass p-5 rounded-2xl space-y-4">
                     <div class="flex justify-between items-center border-b border-slate-700/50 pb-3">
-                        <h2 class="text-sm font-bold uppercase text-blue-400">Connection</h2>
-                        <button id="refreshDevices" class="flex items-center gap-1.5 text-xs text-blue-400 hover:text-white uppercase font-bold transition-colors disabled:opacity-50">
+                        <h2 class="text-sm font-bold uppercase text-purple-400">Connection</h2>
+                        <button id="refreshDevices" class="flex items-center gap-1.5 text-xs text-purple-400 hover:text-white uppercase font-bold transition-colors">
                             <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                             Refresh
                         </button>
@@ -65,16 +65,20 @@
                     <div class="space-y-3">
                         <div class="space-y-1">
                             <label class="text-[11px] text-slate-500 uppercase font-bold">Active Device</label>
-                            <select id="deviceList" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-blue-500 transition-all"><option value="">Searching...</option></select>
+                            <select id="deviceList" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-purple-500 text-sm"><option value="">Searching...</option></select>
+                        </div>
+                        <div class="space-y-1 pt-2 border-t border-slate-800">
+                            <label class="text-[11px] text-slate-500 uppercase font-bold">Wireless TCP/IP</label>
+                            <div class="flex flex-col gap-2">
+                                <input type="text" id="wirelessIp" placeholder="192.168.1.x:5555" class="text-sm">
+                                <button id="connectWireless" class="w-full py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-xs font-bold uppercase transition-all shadow-lg">Connect</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div id="dropZone" class="glass p-6 rounded-2xl flex flex-col items-center justify-center text-center space-y-3">
-                    <div class="bg-blue-500/10 p-3 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" /></svg></div>
-                    <div><h3 class="text-sm font-bold text-slate-200 uppercase tracking-tight">APK Install</h3><p class="text-xs text-slate-500 mt-1">Drag .apk here</p></div>
-                </div>
+
                 <div class="glass p-5 rounded-2xl space-y-4">
-                    <h2 class="text-xs font-bold uppercase text-blue-400 border-b border-slate-700/50 pb-3">Shortcuts (Alt + Key)</h2>
+                    <h2 class="text-xs font-bold uppercase text-purple-400 border-b border-slate-700/50 pb-3">Shortcuts (Alt + Key)</h2>
                     <div class="grid grid-cols-2 gap-x-2 gap-y-3 text-[11px] text-slate-300">
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Full Screen</span><kbd>F</kbd></div>
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Home</span><kbd>H</kbd></div>
@@ -82,8 +86,6 @@
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Recents</span><kbd>S</kbd></div>
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Power</span><kbd>P</kbd></div>
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Rotate</span><kbd>R</kbd></div>
-                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Vol Up</span><kbd>↑</kbd></div>
-                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Vol Down</span><kbd>↓</kbd></div>
                     </div>
                 </div>
             </aside>
@@ -108,8 +110,8 @@
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[11px] text-slate-500 uppercase font-bold flex justify-between">Bitrate <span id="bitrateVal" class="text-blue-400 font-bold">8 Mbps</span></label>
-                                <input type="range" id="bitrate" min="1" max="24" value="8" class="w-full h-2 accent-blue-500 bg-slate-800 rounded-lg">
+                                <label class="text-[11px] text-slate-500 uppercase font-bold flex justify-between">Bitrate <span id="bitrateVal" class="text-purple-400 font-bold">8 Mbps</span></label>
+                                <input type="range" id="bitrate" min="1" max="24" value="8" class="w-full h-2 accent-purple-500 bg-slate-800 rounded-lg">
                             </div>
                             <div class="space-y-2">
                                 <label class="text-[11px] text-slate-500 uppercase font-bold">Initial Orientation</label>
@@ -120,34 +122,52 @@
                         </div>
                     </div>
                     <div class="glass p-6 rounded-2xl space-y-4">
-                        <h2 class="text-sm font-bold uppercase text-slate-400 border-b border-slate-700/50 pb-3">Mirroring Options</h2>
-                        <div class="grid grid-cols-2 gap-x-6 gap-y-4">
-                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm">Stay Awake</span><input type="checkbox" id="stayAwake" class="rounded text-blue-600 w-4 h-4" checked></label>
-                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm">Screen Off</span><input type="checkbox" id="turnScreenOff" class="rounded text-blue-600 w-4 h-4"></label>
-                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm">System Audio</span><input type="checkbox" id="audioEnabled" class="rounded text-blue-600 w-4 h-4" checked></label>
-                            <label class="flex items-center justify-between cursor-pointer group"><span class="text-sm font-bold text-blue-400">Desktop Mode</span><input type="checkbox" id="virtualDisplay" class="rounded text-blue-600 w-4 h-4"></label>
+                        <div class="flex justify-between items-center border-b border-slate-700/50 pb-3">
+                            <h2 class="text-sm font-bold uppercase text-slate-400">Desktop Mode Settings</h2>
+                            <input type="checkbox" id="virtualDisplay" class="rounded text-purple-600 w-4 h-4">
+                        </div>
+                        <div id="vdOptions" class="space-y-4 opacity-40 pointer-events-none transition-opacity">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[11px] text-slate-500 uppercase font-bold">VD Width</label>
+                                    <input type="number" id="vdWidth" value="1920" class="w-full">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[11px] text-slate-500 uppercase font-bold">VD Height</label>
+                                    <input type="number" id="vdHeight" value="1080" class="w-full">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[11px] text-slate-500 uppercase font-bold">DPI Scale</label>
+                                <div class="flex items-center gap-3">
+                                    <input type="number" id="vdDpi" value="420" class="flex-grow">
+                                    <span class="text-[10px] text-slate-500 italic">Standard: 420</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pt-2 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-slate-800/50">
+                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm">Stay Awake</span><input type="checkbox" id="stayAwake" class="rounded text-purple-600 w-4 h-4" checked></label>
+                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm">Screen Off</span><input type="checkbox" id="turnScreenOff" class="rounded text-purple-600 w-4 h-4"></label>
+                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm">Audio</span><input type="checkbox" id="audioEnabled" class="rounded text-purple-600 w-4 h-4" checked></label>
                         </div>
                     </div>
                 </div>
                 <div class="space-y-4">
-                    <button id="startScrcpy" class="btn-primary w-full py-5 rounded-2xl text-lg font-bold uppercase shadow-2xl disabled:opacity-40 tracking-widest transition-all">Launch Mirroring</button>
-                    <div id="logOutput" class="glass p-4 rounded-2xl h-48 overflow-y-auto custom-scrollbar font-mono text-xs text-slate-400 border border-white/5"><div class="text-blue-500/80 font-bold border-b border-blue-500/10 mb-2 pb-1">[SYSTEM READY]</div></div>
+                    <button id="startScrcpy" class="btn-primary w-full py-5 rounded-2xl text-lg font-bold uppercase shadow-2xl tracking-widest transition-all">Launch Mirroring</button>
+                    <div id="logOutput" class="glass p-4 rounded-2xl h-48 overflow-y-auto custom-scrollbar font-mono text-xs text-slate-400 border border-white/5"><div class="text-purple-500/80 font-bold border-b border-purple-500/10 mb-2 pb-1">[SYSTEM READY]</div></div>
                 </div>
             </main>
         </div>
 
         <footer class="mt-12 mb-8 text-center w-full">
             <div class="glass px-6 py-10 rounded-3xl border-white/5 w-full">
-                <h2 class="text-xs font-bold uppercase text-blue-500 tracking-[0.3em] mb-4">About Scrcpy GUI</h2>
+                <h2 class="text-xs font-bold uppercase text-purple-500 tracking-[0.3em] mb-4">About Scrcpy GUI</h2>
                 <div class="flex justify-center items-center gap-12 mb-8">
                     <button onclick="openLink('https://github.com/kil0bit-kb')" class="social-link flex flex-col items-center gap-1.5 group"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg><span class="text-[10px] uppercase font-bold tracking-widest">GitHub</span></button>
                     <button onclick="openLink('https://www.youtube.com/@kilObit')" class="social-link flex flex-col items-center gap-1.5 group"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg><span class="text-[10px] uppercase font-bold tracking-widest">YouTube</span></button>
                     <button onclick="openLink('https://kil0bit.blogspot.com/')" class="social-link flex flex-col items-center gap-1.5 group"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg><span class="text-[10px] uppercase font-bold tracking-widest">Website</span></button>
                 </div>
-                <div class="pt-8 border-t border-slate-800/50 flex flex-col items-center gap-2">
-                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">App Version 2026.1.21</p>
-                    <p class="text-[11px] text-slate-400 font-medium">Scrcpy GUI by KB | Made with ❤️ by <span class="text-white font-bold">KB</span></p>
-                </div>
+                <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">App Version 2.0</p>
             </div>
         </footer>
     </div>
@@ -161,7 +181,17 @@
         function openLink(url) { if (shell) { shell.openExternal(url); } else { window.open(url, '_blank'); } }
 
         const logEl = document.getElementById('logOutput'), deviceList = document.getElementById('deviceList'), bitrateSlider = document.getElementById('bitrate'), bitrateVal = document.getElementById('bitrateVal'), pathDisplay = document.getElementById('pathDisplay'), startBtn = document.getElementById('startScrcpy'), refreshBtn = document.getElementById('refreshDevices'), refreshIcon = document.getElementById('refreshIcon'), dot = document.getElementById('statusDot'), text = document.getElementById('statusText');
+        const vdCheckbox = document.getElementById('virtualDisplay'), vdOptions = document.getElementById('vdOptions'), wirelessIp = document.getElementById('wirelessIp'), connectWireless = document.getElementById('connectWireless');
+        
         let customScrcpyPath = localStorage.getItem('scrcpyPath') || null, isMirroring = false;
+
+        vdCheckbox.addEventListener('change', () => {
+            if (vdCheckbox.checked) {
+                vdOptions.classList.remove('opacity-40', 'pointer-events-none');
+            } else {
+                vdOptions.classList.add('opacity-40', 'pointer-events-none');
+            }
+        });
 
         function addLog(msg, type = 'info') {
             const div = document.createElement('div');
@@ -182,13 +212,10 @@
         async function scanDevices() {
             if (!isElectron) return;
             refreshBtn.disabled = true; refreshIcon.classList.add('animate-spin-custom');
-            deviceList.innerHTML = '<option value="">Searching...</option>';
-            text.textContent = 'ADB: Checking...'; dot.className = "status-dot bg-yellow-500 animate-pulse";
             const result = await ipcRenderer.invoke('get-devices', customScrcpyPath);
             refreshBtn.disabled = false; refreshIcon.classList.remove('animate-spin-custom');
             if (result.error) {
                 text.textContent = 'ADB Error'; dot.className = "status-dot bg-red-500";
-                addLog(result.message, 'error');
                 deviceList.innerHTML = '<option value="">Binary Missing</option>';
                 return;
             }
@@ -197,12 +224,22 @@
                 const opt = document.createElement('option'); opt.value = id; opt.textContent = id;
                 deviceList.appendChild(opt);
             });
-            if (result.devices.length) {
-                text.textContent = `${result.devices.length} Online`; dot.className = "status-dot bg-green-500";
-            } else {
-                text.textContent = 'No Devices'; dot.className = "status-dot bg-red-500";
-            }
+            text.textContent = result.devices.length ? `${result.devices.length} Online` : 'No Devices';
+            dot.className = result.devices.length ? "status-dot bg-green-500" : "status-dot bg-red-500";
         }
+
+        connectWireless.addEventListener('click', async () => {
+            const ip = wirelessIp.value.trim();
+            if (!ip) return addLog('IP Address required', 'error');
+            addLog(`Attempting wireless connection to ${ip}...`);
+            const res = await ipcRenderer.invoke('adb-connect', { ip, customPath: customScrcpyPath });
+            if (res.success) {
+                addLog(res.message, 'success');
+                setTimeout(scanDevices, 1000);
+            } else {
+                addLog(res.message, 'error');
+            }
+        });
 
         bitrateSlider.addEventListener('input', () => bitrateVal.textContent = bitrateSlider.value + ' Mbps');
         refreshBtn.addEventListener('click', scanDevices);
@@ -220,6 +257,9 @@
             const path = await ipcRenderer.invoke('select-folder');
             if (path) { customScrcpyPath = path; localStorage.setItem('scrcpyPath', path); validateScrcpy(); }
         });
+        document.getElementById('resetPath').addEventListener('click', () => {
+            customScrcpyPath = null; localStorage.removeItem('scrcpyPath'); validateScrcpy();
+        });
 
         startBtn.addEventListener('click', () => {
             if (isMirroring) return ipcRenderer.send('stop-scrcpy');
@@ -229,7 +269,11 @@
                 device: dev, res: document.getElementById('resolution').value, bitrate: bitrateSlider.value,
                 fps: document.getElementById('fps').value, stayAwake: document.getElementById('stayAwake').checked,
                 turnOff: document.getElementById('turnScreenOff').checked, audioEnabled: document.getElementById('audioEnabled').checked,
-                virtualDisplay: document.getElementById('virtualDisplay').checked, scrcpyPath: customScrcpyPath,
+                virtualDisplay: vdCheckbox.checked,
+                vdWidth: document.getElementById('vdWidth').value,
+                vdHeight: document.getElementById('vdHeight').value,
+                vdDpi: document.getElementById('vdDpi').value,
+                scrcpyPath: customScrcpyPath,
                 rotation: document.getElementById('rotation').value
             });
         });
