@@ -479,6 +479,7 @@
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Home</span><kbd>H</kbd></div>
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Back</span><kbd>B</kbd></div>
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Recents</span><kbd>S</kbd></div>
+                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5 col-span-2"><span>Rotate Screen</span><kbd>R</kbd></div>
                     </div>
                 </div>
             </aside>
@@ -709,7 +710,6 @@
             } catch (e) {}
         }
 
-        // ==== CUSTOMIZATION FUNCTIONS ====
 
         // Theme Management
         function setTheme(theme) {
@@ -941,10 +941,6 @@
                 resetBtn.addEventListener('click', resetLayout);
             }
         }
-
-        // ==== END CUSTOMIZATION FUNCTIONS ====
-
-
         inputIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -1114,6 +1110,64 @@
                 vdDpi: document.getElementById('vdDpi').value, scrcpyPath: customScrcpyPath, rotation: document.getElementById('rotation').value
             });
         };
+
+        document.addEventListener('keydown', (e) => {
+            if (!e.altKey || !isElectron) return;
+            const tag = document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+            const key = e.key.toLowerCase();
+            const shortcuts = {
+                'f': { action: 'fullscreen', label: 'FULLSCREEN' },
+                'h': { keycode: 3, label: 'HOME' },
+                'b': { keycode: 4, label: 'BACK' },
+                's': { keycode: 187, label: 'RECENTS' },
+                'r': { action: 'rotate', label: 'ROTATE' }
+            };
+
+            const shortcut = shortcuts[key];
+            if (!shortcut) return;
+
+            e.preventDefault();
+            const shortcutItems = document.querySelectorAll('[data-panel-id="shortcuts"] .grid > div');
+            const index = Object.keys(shortcuts).indexOf(key);
+            if (index >= 0 && shortcutItems[index]) {
+                shortcutItems[index].style.boxShadow = '0 0 0 1px rgba(168,85,247,0.8), 0 0 8px rgba(168,85,247,0.4)';
+                setTimeout(() => shortcutItems[index].style.boxShadow = '', 300);
+            }
+            if (shortcut.action === 'fullscreen') {
+                ipcRenderer.invoke('toggle-fullscreen').then(() => {
+                    addLog('Toggled fullscreen', 'info');
+                });
+                return;
+            }
+
+            if (shortcut.action === 'rotate') {
+                const rotEl = document.getElementById('rotation');
+                const current = parseInt(rotEl.value);
+                const next = (current + 1) % 4;
+                rotEl.value = next;
+                rotEl.dispatchEvent(new Event('change'));
+                const labels = ['0°', '90° CCW', '180°', '90° CW'];
+                addLog(`Rotation set to ${labels[next]}`, 'info');
+                saveSettings();
+                return;
+            }
+            const device = deviceList.value;
+            if (!device) {
+                addLog('No device selected for shortcut', 'error');
+                return;
+            }
+
+            ipcRenderer.invoke('send-keyevent', {
+                keycode: shortcut.keycode,
+                device: device,
+                customPath: customScrcpyPath
+            }).then(res => {
+                if (res.success) addLog(`Sent ${shortcut.label} to device`, 'info');
+                else addLog(`Shortcut failed: ${res.message}`, 'error');
+            });
+        });
 
         loadSettings();
         loadCustomization();  

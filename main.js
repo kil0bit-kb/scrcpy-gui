@@ -134,6 +134,27 @@ ipcMain.on('run-scrcpy', (event, config) => {
 
 ipcMain.on('stop-scrcpy', () => { if (scrcpyProcess) scrcpyProcess.kill(); });
 
+// 6. Send keyevent to Android device
+ipcMain.handle('send-keyevent', async (event, { keycode, device, customPath }) => {
+    return new Promise((resolve) => {
+        const adbPath = getBinaryPath('adb', customPath);
+        const deviceFlag = device ? `-s ${device} ` : '';
+        exec(`"${adbPath}" ${deviceFlag}shell input keyevent ${keycode}`, (error, stdout) => {
+            if (error) resolve({ success: false, message: error.message });
+            else resolve({ success: true, message: `Keyevent ${keycode} sent` });
+        });
+    });
+});
+
+// 7. Toggle fullscreen
+ipcMain.handle('toggle-fullscreen', async () => {
+    if (mainWindow) {
+        mainWindow.setFullScreen(!mainWindow.isFullScreen());
+        return { fullscreen: mainWindow.isFullScreen() };
+    }
+    return { fullscreen: false };
+});
+
 ipcMain.handle('select-folder', async () => {
     const result = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'] });
     return result.canceled ? null : result.filePaths[0];
