@@ -127,7 +127,7 @@ ipcMain.on('run-scrcpy', (event, config) => {
         scrcpyProcess = null;
         if (mainWindow) {
             mainWindow.webContents.send('scrcpy-status', false);
-            mainWindow.webContents.send('scrcpy-log', `Session closed (Code: ${code})`);
+            mainWindow.webContents.send('scrcpy-close', code);
         }
     });
 });

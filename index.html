@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scrcpy GUI 2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="i18n.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -384,27 +385,27 @@
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 px-2">
             <div>
                 <h1 class="text-2xl font-bold tracking-tight">scrcpy <span class="text-purple-500">GUI</span> <span class="text-white text-[10px] align-top ml-0.5 font-bold tracking-tighter">by KB</span></h1>
-                <p class="text-slate-400 text-xs uppercase tracking-widest font-medium">Mirror & Control Android Devices Easily</p>
+                <p class="text-slate-400 text-xs uppercase tracking-widest font-medium" data-i18n="app.subtitle">Mirror & Control Android Devices Easily</p>
             </div>
             <div class="flex flex-wrap gap-3 items-center">
                 <!-- Binary Status Panel -->
                 <div class="glass px-4 py-2 rounded-xl flex items-center gap-4">
                     <div class="flex flex-col">
-                        <span class="text-[10px] uppercase font-bold text-slate-400 mb-1">Binary Status</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 mb-1" data-i18n="header.binaryStatus">Binary Status</span>
                         <div class="flex items-center gap-2">
-                            <div id="pathDisplay" class="text-xs font-mono font-bold text-yellow-500">Checking...</div>
+                            <div id="pathDisplay" class="text-xs font-mono font-bold text-yellow-500" data-i18n="header.checking">Checking...</div>
                             <!-- Download Button at Top - Stays here for easy access -->
-                            <button id="downloadBinaryBtn" onclick="openLink('https://github.com/Genymobile/scrcpy/releases')" class="hidden px-2 py-0.5 bg-purple-600/20 border border-purple-500/50 rounded-md text-[9px] font-black text-purple-400 hover:bg-purple-600 hover:text-white transition-all uppercase tracking-tighter">Get Scrcpy</button>
+                            <button id="downloadBinaryBtn" onclick="openLink('https://github.com/Genymobile/scrcpy/releases')" class="hidden px-2 py-0.5 bg-purple-600/20 border border-purple-500/50 rounded-md text-[9px] font-black text-purple-400 hover:bg-purple-600 hover:text-white transition-all uppercase tracking-tighter" data-i18n="header.getScrcpy">Get Scrcpy</button>
                         </div>
                     </div>
                     <div class="flex gap-1 border-l border-slate-700/50 pl-3">
-                        <button id="setPath" class="p-1 hover:text-purple-400 text-slate-400 transition-colors" title="Select Folder"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg></button>
-                        <button id="resetPath" class="p-1 hover:text-red-400 text-slate-400 transition-colors" title="Reset Path"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
+                        <button id="setPath" class="p-1 hover:text-purple-400 text-slate-400 transition-colors" title="Select Folder" data-i18n-title="tooltip.selectFolder"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg></button>
+                        <button id="resetPath" class="p-1 hover:text-red-400 text-slate-400 transition-colors" title="Reset Path" data-i18n-title="tooltip.resetPath"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></button>
                     </div>
                 </div>
                 <div class="glass px-4 py-3 rounded-xl text-sm flex items-center gap-3">
                     <span id="statusDot" class="status-dot bg-yellow-500"></span>
-                    <span id="statusText" class="font-semibold text-slate-200">ADB: Init</span>
+                    <span id="statusText" class="font-semibold text-slate-200" data-i18n="header.adbInit">ADB: Init</span>
                 </div>
                 <!-- Settings Button -->
                 <button id="openSettings" class="glass px-3 py-3 rounded-xl hover:bg-purple-500/20 transition-all" title="Customization Settings">
@@ -420,66 +421,66 @@
             <aside id="sidebarPanels" class="lg:col-span-3 space-y-4">
                 <div class="glass p-5 rounded-2xl space-y-4" data-panel-id="devices" draggable="true">
                     <div class="flex justify-between items-center border-b border-slate-700/50 pb-3">
-                        <h2 class="text-sm font-bold uppercase text-purple-400 tracking-tight">Devices</h2>
+                        <h2 class="text-sm font-bold uppercase text-purple-400 tracking-tight" data-i18n="devices.title">Devices</h2>
                         <div class="flex gap-2">
-                            <button id="killAdb" class="flex items-center gap-1 text-[10px] text-red-400 hover:text-red-500 uppercase font-bold transition-colors" title="Clear stuck operations">Kill ADB</button>
+                            <button id="killAdb" class="flex items-center gap-1 text-[10px] text-red-400 hover:text-red-500 uppercase font-bold transition-colors" title="Clear stuck operations" data-i18n="devices.killAdb">Kill ADB</button>
                             <button id="refreshDevices" class="flex items-center gap-1 text-xs text-purple-400 hover:text-white uppercase font-bold transition-colors">
                                 <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                Refresh
+                                <span data-i18n="devices.refresh">Refresh</span>
                             </button>
                         </div>
                     </div>
 
                     <div class="space-y-1">
-                        <label class="text-[10px] text-slate-400 uppercase font-black tracking-tighter">Active Device Selection</label>
-                        <select id="deviceList" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-purple-500 text-sm text-slate-200"><option value="">Searching...</option></select>
+                        <label class="text-[10px] text-slate-400 uppercase font-black tracking-tighter" data-i18n="devices.activeDevice">Active Device Selection</label>
+                        <select id="deviceList" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 outline-none focus:border-purple-500 text-sm text-slate-200"><option value="" data-i18n="devices.searching">Searching...</option></select>
                     </div>
 
                     <div class="flex border-b border-slate-800 mb-2">
-                        <button onclick="switchTab('usb')" id="tab-usb" class="tab-btn active flex-1 py-2 text-[10px] font-bold uppercase tracking-wider">USB Info</button>
-                        <button onclick="switchTab('wireless')" id="tab-wireless" class="tab-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-wider">Wireless</button>
+                        <button onclick="switchTab('usb')" id="tab-usb" class="tab-btn active flex-1 py-2 text-[10px] font-bold uppercase tracking-wider" data-i18n="devices.usbInfo">USB Info</button>
+                        <button onclick="switchTab('wireless')" id="tab-wireless" class="tab-btn flex-1 py-2 text-[10px] font-bold uppercase tracking-wider" data-i18n="devices.wireless">Wireless</button>
                     </div>
 
                     <div id="usb-view" class="space-y-3">
-                        <p class="text-[10px] text-slate-400 italic leading-relaxed">Devices plugged via USB will automatically appear in the list above. Ensure USB Debugging is enabled.</p>
+                        <p class="text-[10px] text-slate-400 italic leading-relaxed" data-i18n="devices.usbHint">Devices plugged via USB will automatically appear in the list above. Ensure USB Debugging is enabled.</p>
                     </div>
 
                     <div id="wireless-view" class="hidden space-y-4">
                         <div class="space-y-1">
                             <div class="flex justify-between items-center mb-1">
-                                <label class="text-[11px] text-slate-400 uppercase font-bold">1. Connect via IP</label>
+                                <label class="text-[11px] text-slate-400 uppercase font-bold" data-i18n="devices.connectViaIp">1. Connect via IP</label>
                                 <label class="flex items-center gap-1.5 cursor-pointer">
-                                    <span class="text-[9px] text-slate-500 uppercase font-bold">Auto</span>
+                                    <span class="text-[9px] text-slate-500 uppercase font-bold" data-i18n="devices.auto">Auto</span>
                                     <input type="checkbox" id="autoConnect" class="rounded text-purple-600 w-3 h-3">
                                 </label>
                             </div>
                             <div class="flex flex-col gap-2">
-                                <input type="text" id="wirelessIp" placeholder="192.168.1.x:5555" class="text-sm text-slate-200">
-                                <button id="connectWireless" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold uppercase transition-all shadow-lg">Connect</button>
+                                <input type="text" id="wirelessIp" placeholder="192.168.1.x:5555" class="text-sm text-slate-200" data-i18n-placeholder="devices.ipPlaceholder">
+                                <button id="connectWireless" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold uppercase transition-all shadow-lg" data-i18n="devices.connect">Connect</button>
                             </div>
                             <div id="recentContainer" class="hidden mt-3 space-y-1.5">
-                                <label class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">History</label>
+                                <label class="text-[9px] text-slate-500 uppercase font-bold tracking-widest" data-i18n="devices.history">History</label>
                                 <div id="recentList" class="flex flex-col gap-1"></div>
                             </div>
                         </div>
 
                         <div class="space-y-1 pt-2 border-t border-slate-800">
-                            <label class="text-[11px] text-slate-400 uppercase font-bold mb-1 block">2. Pairing Code (Android 11+)</label>
-                            <input type="text" id="pairIp" placeholder="Pair IP:Port" class="w-full text-sm text-slate-200 mb-2">
-                            <input type="text" id="pairCode" placeholder="6-digit code" class="w-full text-sm text-slate-200 mb-2">
-                            <button id="pairBtn" class="w-full py-2 border border-purple-500/50 hover:bg-purple-500/20 text-purple-400 rounded-lg text-xs font-bold uppercase transition-all">Pair Device</button>
+                            <label class="text-[11px] text-slate-400 uppercase font-bold mb-1 block" data-i18n="devices.pairingCode">2. Pairing Code (Android 11+)</label>
+                            <input type="text" id="pairIp" placeholder="Pair IP:Port" class="w-full text-sm text-slate-200 mb-2" data-i18n-placeholder="devices.pairIpPlaceholder">
+                            <input type="text" id="pairCode" placeholder="6-digit code" class="w-full text-sm text-slate-200 mb-2" data-i18n-placeholder="devices.pairCodePlaceholder">
+                            <button id="pairBtn" class="w-full py-2 border border-purple-500/50 hover:bg-purple-500/20 text-purple-400 rounded-lg text-xs font-bold uppercase transition-all" data-i18n="devices.pairDevice">Pair Device</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="glass p-5 rounded-2xl space-y-4" data-panel-id="shortcuts" draggable="true">
-                    <h2 class="text-xs font-bold uppercase text-purple-400 border-b border-slate-700/50 pb-3">Shortcuts (Alt + Key)</h2>
+                    <h2 class="text-xs font-bold uppercase text-purple-400 border-b border-slate-700/50 pb-3" data-i18n="shortcuts.title">Shortcuts (Alt + Key)</h2>
                     <div class="grid grid-cols-2 gap-x-2 gap-y-3 text-[11px] text-slate-300">
-                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Full Screen</span><kbd>F</kbd></div>
-                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Home</span><kbd>H</kbd></div>
-                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Back</span><kbd>B</kbd></div>
-                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Recents</span><kbd>S</kbd></div>
-                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5 col-span-2"><span>Rotate Screen</span><kbd>R</kbd></div>
+                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span data-i18n="shortcuts.fullScreen">Full Screen</span><kbd>F</kbd></div>
+                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span data-i18n="shortcuts.home">Home</span><kbd>H</kbd></div>
+                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span data-i18n="shortcuts.back">Back</span><kbd>B</kbd></div>
+                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span data-i18n="shortcuts.recents">Recents</span><kbd>S</kbd></div>
+                        <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5 col-span-2"><span data-i18n="shortcuts.rotateScreen">Rotate Screen</span><kbd>R</kbd></div>
                     </div>
                 </div>
             </aside>
@@ -487,28 +488,28 @@
             <main id="mainPanels" class="lg:col-span-9 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6" data-panel-id="settings-panels" draggable="true">
                     <div class="glass p-6 rounded-2xl space-y-4">
-                        <h2 class="text-sm font-bold uppercase text-slate-300 border-b border-slate-700/50 pb-3">Video Engine Settings</h2>
+                        <h2 class="text-sm font-bold uppercase text-slate-300 border-b border-slate-700/50 pb-3" data-i18n="video.title">Video Engine Settings</h2>
                         <div class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-2">
-                                    <label class="text-[11px] text-slate-400 uppercase font-bold">Resolution</label>
+                                    <label class="text-[11px] text-slate-400 uppercase font-bold" data-i18n="video.resolution">Resolution</label>
                                     <select id="resolution" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-slate-200 outline-none">
-                                        <option value="0">Original</option><option value="1920">1080p</option><option value="1280" selected>720p</option><option value="800">480p</option>
+                                        <option value="0" data-i18n="video.original">Original</option><option value="1920">1080p</option><option value="1280" selected>720p</option><option value="800">480p</option>
                                     </select>
                                 </div>
                                 <div class="space-y-2">
-                                    <label class="text-[11px] text-slate-400 uppercase font-bold">Max FPS</label>
+                                    <label class="text-[11px] text-slate-400 uppercase font-bold" data-i18n="video.maxFps">Max FPS</label>
                                     <select id="fps" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-slate-200 outline-none">
                                         <option value="30">30 FPS</option><option value="60" selected>60 FPS</option><option value="120">120 FPS</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[11px] text-slate-400 uppercase font-bold flex justify-between">Bitrate <span id="bitrateVal" class="text-purple-400 font-bold">8 Mbps</span></label>
+                                <label class="text-[11px] text-slate-400 uppercase font-bold flex justify-between"><span data-i18n="video.bitrate">Bitrate</span> <span id="bitrateVal" class="text-purple-400 font-bold">8 Mbps</span></label>
                                 <input type="range" id="bitrate" min="1" max="24" value="8" class="w-full h-2 accent-purple-500 bg-slate-800 rounded-lg">
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[11px] text-slate-400 uppercase font-bold">Initial Orientation</label>
+                                <label class="text-[11px] text-slate-400 uppercase font-bold" data-i18n="video.initialOrientation">Initial Orientation</label>
                                 <select id="rotation" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-sm text-slate-200 outline-none">
                                     <option value="0">0°</option><option value="1">90° CCW</option><option value="2">180°</option><option value="3">90° CW</option>
                                 </select>
@@ -517,27 +518,27 @@
                     </div>
                     <div class="glass p-6 rounded-2xl space-y-4">
                         <div class="flex justify-between items-center border-b border-slate-700/50 pb-3">
-                            <h2 class="text-sm font-bold uppercase text-slate-300">Desktop Mode</h2>
+                            <h2 class="text-sm font-bold uppercase text-slate-300" data-i18n="desktop.title">Desktop Mode</h2>
                             <input type="checkbox" id="virtualDisplay" class="rounded text-purple-600 w-4 h-4">
                         </div>
                         <div id="vdOptions" class="space-y-4 opacity-40 pointer-events-none transition-opacity">
                             <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-2"><label class="text-[11px] text-slate-400 uppercase font-bold">VD Width</label><input type="number" id="vdWidth" value="1920" class="w-full text-slate-200"></div>
-                                <div class="space-y-2"><label class="text-[11px] text-slate-400 uppercase font-bold">VD Height</label><input type="number" id="vdHeight" value="1080" class="w-full text-slate-200"></div>
+                                <div class="space-y-2"><label class="text-[11px] text-slate-400 uppercase font-bold" data-i18n="desktop.vdWidth">VD Width</label><input type="number" id="vdWidth" value="1920" class="w-full text-slate-200"></div>
+                                <div class="space-y-2"><label class="text-[11px] text-slate-400 uppercase font-bold" data-i18n="desktop.vdHeight">VD Height</label><input type="number" id="vdHeight" value="1080" class="w-full text-slate-200"></div>
                             </div>
-                            <div class="space-y-2"><label class="text-[11px] text-slate-400 uppercase font-bold">DPI Scale</label><input type="number" id="vdDpi" value="420" class="w-full text-slate-200"></div>
+                            <div class="space-y-2"><label class="text-[11px] text-slate-400 uppercase font-bold" data-i18n="desktop.dpiScale">DPI Scale</label><input type="number" id="vdDpi" value="420" class="w-full text-slate-200"></div>
                         </div>
                         <div class="pt-2 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-slate-800/50">
-                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm text-slate-300">Stay Awake</span><input type="checkbox" id="stayAwake" class="rounded text-purple-600 w-4 h-4" checked></label>
-                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm text-slate-300">Screen Off</span><input type="checkbox" id="turnScreenOff" class="rounded text-purple-600 w-4 h-4"></label>
-                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm text-slate-300">Audio</span><input type="checkbox" id="audioEnabled" class="rounded text-purple-600 w-4 h-4" checked></label>
-                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm text-slate-300">Always On Top</span><input type="checkbox" id="alwaysOnTop" class="rounded text-purple-600 w-4 h-4"></label>
+                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm text-slate-300" data-i18n="desktop.stayAwake">Stay Awake</span><input type="checkbox" id="stayAwake" class="rounded text-purple-600 w-4 h-4" checked></label>
+                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm text-slate-300" data-i18n="desktop.screenOff">Screen Off</span><input type="checkbox" id="turnScreenOff" class="rounded text-purple-600 w-4 h-4"></label>
+                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm text-slate-300" data-i18n="desktop.audio">Audio</span><input type="checkbox" id="audioEnabled" class="rounded text-purple-600 w-4 h-4" checked></label>
+                            <label class="flex items-center justify-between cursor-pointer"><span class="text-sm text-slate-300" data-i18n="desktop.alwaysOnTop">Always On Top</span><input type="checkbox" id="alwaysOnTop" class="rounded text-purple-600 w-4 h-4"></label>
                         </div>
                     </div>
                 </div>
                 <div class="space-y-4" data-panel-id="actions-panel" draggable="true">
-                    <button id="startScrcpy" class="btn-primary w-full py-5 rounded-2xl text-white text-lg font-bold uppercase shadow-2xl tracking-widest transition-all">Launch Mirroring</button>
-                    <div id="logOutput" class="glass p-4 rounded-2xl h-48 overflow-y-auto custom-scrollbar font-mono text-xs text-slate-300 border border-white/5"><div class="text-purple-400 font-bold border-b border-purple-500/10 mb-2 pb-1">[SYSTEM READY]</div></div>
+                    <button id="startScrcpy" class="btn-primary w-full py-5 rounded-2xl text-white text-lg font-bold uppercase shadow-2xl tracking-widest transition-all" data-i18n="actions.launchMirroring">Launch Mirroring</button>
+                    <div id="logOutput" class="glass p-4 rounded-2xl h-48 overflow-y-auto custom-scrollbar font-mono text-xs text-slate-300 border border-white/5"><div class="text-purple-400 font-bold border-b border-purple-500/10 mb-2 pb-1" data-i18n="actions.systemReady">[SYSTEM READY]</div></div>
                 </div>
             </main>
         </div>
@@ -547,7 +548,7 @@
             <div class="glass p-6 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto custom-scrollbar">
                 <!-- Header -->
                 <div class="flex justify-between items-center border-b pb-4 mb-6" style="border-color: var(--input-border);">
-                    <h2 class="text-xl font-bold" style="color: var(--accent-primary);">Customization Settings</h2>
+                    <h2 class="text-xl font-bold" style="color: var(--accent-primary);" data-i18n="settings.title">Customization Settings</h2>
                     <button id="closeSettings" class="p-2 hover:bg-purple-500/20 rounded-lg transition-all" style="color: var(--text-tertiary);">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -555,30 +556,38 @@
                     </button>
                 </div>
 
+                <div class="space-y-4 mb-6">
+                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);" data-i18n="settings.language">Language</h3>
+                    <div class="relative">
+                        <select id="languageSelect" class="w-full text-sm" style="padding: 10px 12px; font-size: 0.95rem;">
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Theme Section -->
                 <div class="space-y-4 mb-6">
-                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);">Theme</h3>
+                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);" data-i18n="settings.theme">Theme</h3>
                     <div class="flex gap-4">
                         <button class="theme-btn active" data-theme="dark">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                             </svg>
-                            Dark
+                            <span data-i18n="settings.dark">Dark</span>
                         </button>
                         <button class="theme-btn" data-theme="light">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
-                            Light
+                            <span data-i18n="settings.light">Light</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="space-y-4 mb-6">
-                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);">Typography</h3>
+                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);" data-i18n="settings.typography">Typography</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);">UI Font</label>
+                            <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);" data-i18n="settings.uiFont">UI Font</label>
                             <select id="fontFamily" class="w-full">
                                 <option value="inter" selected>Inter</option>
                                 <option value="roboto">Roboto</option>
@@ -588,7 +597,7 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);">Terminal Font</label>
+                            <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);" data-i18n="settings.terminalFont">Terminal Font</label>
                             <select id="monoFont" class="w-full">
                                 <option value="system" selected>System Monospace</option>
                                 <option value="jetbrains">JetBrains Mono</option>
@@ -598,28 +607,26 @@
                         </div>
                     </div>
                     <div>
-                        <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);">Font Size</label>
+                        <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);" data-i18n="settings.fontSize">Font Size</label>
                         <div class="flex gap-2">
-                            <button class="size-btn" data-size="small">Small</button>
-                            <button class="size-btn active" data-size="medium">Medium</button>
-                            <button class="size-btn" data-size="large">Large</button>
+                            <button class="size-btn" data-size="small" data-i18n="settings.small">Small</button>
+                            <button class="size-btn active" data-size="medium" data-i18n="settings.medium">Medium</button>
+                            <button class="size-btn" data-size="large" data-i18n="settings.large">Large</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Panel Layout Section -->
                 <div class="space-y-4 pb-4" style="border-bottom: 1px solid var(--input-border);">
-                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);">Panel Layout</h3>
-                    <p class="text-xs italic" style="color: var(--text-tertiary);">Drag panel headers to reorder them in the main interface</p>
-                    <button id="resetLayout" class="text-xs uppercase font-bold px-4 py-2 rounded-lg border transition-all" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background=''">
+                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);" data-i18n="settings.panelLayout">Panel Layout</h3>
+                    <p class="text-xs italic" style="color: var(--text-tertiary);" data-i18n="settings.dragHint">Drag panel headers to reorder them in the main interface</p>
+                    <button id="resetLayout" class="text-xs uppercase font-bold px-4 py-2 rounded-lg border transition-all" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background=''" data-i18n="settings.resetLayout">
                         Reset to Default Layout
                     </button>
                 </div>
 
-                <!-- Info Section -->
                 <div class="mt-4 p-4 rounded-lg" style="background: var(--input-bg); border: 1px solid var(--input-border);">
                     <p class="text-xs" style="color: var(--text-tertiary);">
-                        <strong style="color: var(--accent-primary);">Note:</strong> All customization settings are saved automatically and persist across sessions.
+                        <strong style="color: var(--accent-primary);" data-i18n="settings.note">Note:</strong> <span data-i18n="settings.noteText">All customization settings are saved automatically and persist across sessions.</span>
                     </p>
                 </div>
             </div>
@@ -627,13 +634,13 @@
 
         <footer class="mt-12 mb-8 text-center w-full">
             <div class="glass px-6 py-10 rounded-3xl border-white/5 w-full">
-                <h2 class="text-xs font-bold uppercase text-purple-500 tracking-[0.3em] mb-4">About Scrcpy GUI</h2>
+                <h2 class="text-xs font-bold uppercase text-purple-500 tracking-[0.3em] mb-4" data-i18n="footer.about">About Scrcpy GUI</h2>
                 <div class="flex justify-center items-center gap-12 mb-8">
-                    <button onclick="openLink('https://github.com/kil0bit-kb')" class="social-link flex flex-col items-center gap-1.5 group text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg><span class="text-[10px] uppercase font-bold tracking-widest">GitHub</span></button>
-                    <button onclick="openLink('https://www.youtube.com/@kilObit')" class="social-link flex flex-col items-center gap-1.5 group text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg><span class="text-[10px] uppercase font-bold tracking-widest">YouTube</span></button>
-                    <button onclick="openLink('https://kil0bit.blogspot.com/')" class="social-link flex flex-col items-center gap-1.5 group text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg><span class="text-[10px] uppercase font-bold tracking-widest">Website</span></button>
+                    <button onclick="openLink('https://github.com/kil0bit-kb')" class="social-link flex flex-col items-center gap-1.5 group text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg><span class="text-[10px] uppercase font-bold tracking-widest" data-i18n="footer.github">GitHub</span></button>
+                    <button onclick="openLink('https://www.youtube.com/@kilObit')" class="social-link flex flex-col items-center gap-1.5 group text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg><span class="text-[10px] uppercase font-bold tracking-widest" data-i18n="footer.youtube">YouTube</span></button>
+                    <button onclick="openLink('https://kil0bit.blogspot.com/')" class="social-link flex flex-col items-center gap-1.5 group text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg><span class="text-[10px] uppercase font-bold tracking-widest" data-i18n="footer.website">Website</span></button>
                 </div>
-                <p class="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">App Version 2.1 • Created with ❤️ by <b>KB</b></p>
+                <p class="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold" data-i18n-html="footer.version">App Version 2.1 • Created with ❤️ by <b>KB</b></p>
             </div>
         </footer>
     </div>
@@ -1022,23 +1029,23 @@
             refreshBtn.disabled = true; refreshIcon.classList.add('animate-spin-custom');
             const result = await ipcRenderer.invoke('get-devices', customScrcpyPath);
             refreshBtn.disabled = false; refreshIcon.classList.remove('animate-spin-custom');
-            if (result.error) { text.textContent = 'ADB Error'; dot.className = "status-dot bg-red-500"; return; }
-            deviceList.innerHTML = result.devices.length ? '' : '<option value="">No devices detected</option>';
+            if (result.error) { text.textContent = t('log.adbError'); dot.className = "status-dot bg-red-500"; return; }
+            deviceList.innerHTML = result.devices.length ? '' : `<option value="">${t('log.noDevices')}</option>`;
             result.devices.forEach(id => { const opt = document.createElement('option'); opt.value = id; opt.textContent = id; deviceList.appendChild(opt); });
             
             if (result.devices.length) {
-                text.textContent = `${result.devices.length} Online`; dot.className = "status-dot bg-green-500";
+                text.textContent = t('log.online', { count: result.devices.length }); dot.className = "status-dot bg-green-500";
                 const target = autoSelectIp || wirelessIp.value.trim();
                 const found = Array.from(deviceList.options).find(o => o.value.includes(target) && target !== "");
                 if (found) deviceList.value = found.value;
                 else deviceList.selectedIndex = 0;
-            } else { text.textContent = 'No Devices'; dot.className = "status-dot bg-red-500"; }
+            } else { text.textContent = t('log.noDevicesStatus'); dot.className = "status-dot bg-red-500"; }
         }
 
         async function validateScrcpy() {
             if (!isElectron) return;
             const result = await ipcRenderer.invoke('check-scrcpy', customScrcpyPath);
-            pathDisplay.textContent = result.message;
+            pathDisplay.textContent = result.found ? t('log.scrcpyReady') : t('log.scrcpyNotFound');
             pathDisplay.className = `text-xs font-mono font-bold ${result.found ? 'text-green-400' : 'text-yellow-500'}`;
             startBtn.disabled = !result.found;
             
@@ -1047,7 +1054,7 @@
             
             const settings = JSON.parse(localStorage.getItem(PERSIST_KEY) || '{}');
             if (result.found && settings.autoConnect && settings.wirelessIp) {
-                addLog(`Auto-connecting to ${settings.wirelessIp}...`);
+                addLog(t('log.autoConnecting', { ip: settings.wirelessIp }));
                 const connectRes = await ipcRenderer.invoke('adb-connect', { ip: settings.wirelessIp, customPath: customScrcpyPath });
                 if (connectRes.success) { addLog(connectRes.message, 'success'); scanDevices(settings.wirelessIp); }
                 else scanDevices();
@@ -1056,13 +1063,13 @@
 
         killAdbBtn.onclick = async () => {
             const res = await ipcRenderer.invoke('kill-adb', customScrcpyPath);
-            addLog("ADB stack cleared. Please refresh.", "error");
+            addLog(t('log.adbCleared'), "error");
             setTimeout(scanDevices, 1000);
         };
 
         connectWireless.onclick = async () => {
-            const ip = wirelessIp.value.trim(); if (!ip) return addLog('IP Address required', 'error');
-            addLog(`Connecting to ${ip}...`);
+            const ip = wirelessIp.value.trim(); if (!ip) return addLog(t('log.ipRequired'), 'error');
+            addLog(t('log.connectingTo', { ip }));
             const res = await ipcRenderer.invoke('adb-connect', { ip, customPath: customScrcpyPath });
             if (res.success) { 
                 addLog(res.message, 'success'); 
@@ -1075,10 +1082,10 @@
 
         pairBtn.onclick = async () => {
             const ip = pairIp.value.trim(), code = pairCode.value.trim();
-            if (!ip || !code) return addLog('IP:Port and Code required', 'error');
+            if (!ip || !code) return addLog(t('log.pairInfoRequired'), 'error');
             const res = await ipcRenderer.invoke('adb-pair', { ip, code, customPath: customScrcpyPath });
-            if (res.success) addLog('Pairing Successful! Use Connect via IP now.', 'success');
-            else addLog('Pairing Failed: ' + res.message, 'error');
+            if (res.success) addLog(t('log.pairingSuccess'), 'success');
+            else addLog(t('log.pairingFailed', { message: res.message }), 'error');
         };
 
         bitrateSlider.oninput = () => { bitrateVal.textContent = bitrateSlider.value + ' Mbps'; saveSettings(); };
@@ -1086,10 +1093,11 @@
 
         if (isElectron) {
             ipcRenderer.on('scrcpy-status', (e, running) => {
-                isMirroring = running; startBtn.textContent = running ? 'STOP MIRRORING' : 'LAUNCH MIRRORING';
+                isMirroring = running; startBtn.textContent = running ? t('actions.stopMirroring') : t('actions.launchMirroring');
                 startBtn.className = running ? 'btn-stop w-full py-5 rounded-2xl text-white text-lg font-bold transition-all' : 'btn-primary w-full py-5 rounded-2xl text-white text-lg font-bold transition-all';
             });
             ipcRenderer.on('scrcpy-log', (e, msg) => addLog(msg));
+            ipcRenderer.on('scrcpy-close', (e, code) => addLog(t('log.sessionClosed', { code })));
         }
 
         document.getElementById('setPath').onclick = async () => {
@@ -1100,7 +1108,7 @@
 
         startBtn.onclick = () => {
             if (isMirroring) return ipcRenderer.send('stop-scrcpy');
-            const dev = deviceList.value; if (!dev) return addLog('Select device!', 'error');
+            const dev = deviceList.value; if (!dev) return addLog(t('log.selectDevice'), 'error');
             ipcRenderer.send('run-scrcpy', {
                 device: dev, res: document.getElementById('resolution').value, bitrate: bitrateSlider.value,
                 fps: document.getElementById('fps').value, stayAwake: document.getElementById('stayAwake').checked,
@@ -1137,7 +1145,7 @@
             }
             if (shortcut.action === 'fullscreen') {
                 ipcRenderer.invoke('toggle-fullscreen').then(() => {
-                    addLog('Toggled fullscreen', 'info');
+                    addLog(t('log.toggledFullscreen'), 'info');
                 });
                 return;
             }
@@ -1148,14 +1156,14 @@
                 const next = (current + 1) % 4;
                 rotEl.value = next;
                 rotEl.dispatchEvent(new Event('change'));
-                const labels = ['0°', '90° CCW', '180°', '90° CW'];
-                addLog(`Rotation set to ${labels[next]}`, 'info');
+                const labels = ['0°', '90° ' + t('video.ccw'), '180°', '90° ' + t('video.cw')];
+                addLog(t('log.rotationSet', { angle: labels[next] }), 'info');
                 saveSettings();
                 return;
             }
             const device = deviceList.value;
             if (!device) {
-                addLog('No device selected for shortcut', 'error');
+                addLog(t('log.noDeviceShortcut'), 'error');
                 return;
             }
 
@@ -1164,10 +1172,39 @@
                 device: device,
                 customPath: customScrcpyPath
             }).then(res => {
-                if (res.success) addLog(`Sent ${shortcut.label} to device`, 'info');
-                else addLog(`Shortcut failed: ${res.message}`, 'error');
+                if (res.success) addLog(t('log.sentToDevice', { action: shortcut.label }), 'info');
+                else addLog(t('log.shortcutFailed', { message: res.message }), 'error');
             });
         });
+
+        // Language Selector Initialization
+        function initLanguageSelector() {
+            const langSelect = document.getElementById('languageSelect');
+            if (!langSelect || typeof I18n === 'undefined') return;
+
+            const languages = I18n.getSupportedLanguages();
+            const currentLang = I18n.getCurrentLanguage();
+
+            // Clear and populate
+            langSelect.innerHTML = '';
+            Object.keys(languages).forEach(code => {
+                const lang = languages[code];
+                const opt = document.createElement('option');
+                opt.value = code;
+                opt.textContent = `${lang.flag} ${lang.native} (${lang.name})`;
+                if (code === currentLang) opt.selected = true;
+                langSelect.appendChild(opt);
+            });
+            langSelect.addEventListener('change', () => {
+                const newLang = langSelect.value;
+                I18n.setLanguage(newLang);
+                if (bitrateSlider && bitrateVal) bitrateVal.textContent = bitrateSlider.value + ' Mbps';
+            });
+        }
+        if (typeof I18n !== 'undefined') {
+            I18n.init();
+            initLanguageSelector();
+        }
 
         loadSettings();
         loadCustomization();  
