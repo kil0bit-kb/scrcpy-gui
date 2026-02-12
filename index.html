@@ -7,27 +7,376 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f1f5f9; overflow-x: hidden; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .btn-primary { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); transition: all 0.2s ease; }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); }
-        .btn-stop { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); transition: all 0.2s ease; }
-        .btn-stop:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); }
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; }
+
+        :root {
+            /* Dark Theme (Default) */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-primary: #a855f7;
+            --accent-secondary: #7c3aed;
+            --input-bg: #0f172a;
+            --input-border: #334155;
+            --scrollbar-track: #1e293b;
+            --scrollbar-thumb: #475569;
+            --kbd-bg: #1e293b;
+            --kbd-border: #334155;
+            --kbd-text: #cbd5e1;
+            --border-subtle: rgba(255,255,255,0.05);
+            --hover-overlay: rgba(168, 85, 247, 0.15);
+            --font-family: 'Inter', sans-serif;
+            --font-mono: monospace;
+            --font-scale: 1.0;
+        }
+
+        [data-theme="light"] {
+            /* Light Theme */
+            --bg-primary: #f8fafc;
+            --bg-secondary: #e2e8f0;
+            --bg-tertiary: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-tertiary: #475569;
+            --text-muted: #94a3b8;
+            --accent-primary: #a855f7;
+            --accent-secondary: #7c3aed;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --scrollbar-track: #e2e8f0;
+            --scrollbar-thumb: #94a3b8;
+            --kbd-bg: #e2e8f0;
+            --kbd-border: #cbd5e1;
+            --kbd-text: #334155;
+            --border-subtle: rgba(0,0,0,0.05);
+            --hover-overlay: rgba(168, 85, 247, 0.1);
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            font-size: calc(16px * var(--font-scale));
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transition: all 0.2s ease;
+        }
+        .btn-stop:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
-        kbd { background-color: #1e293b; border-radius: 4px; padding: 2px 5px; font-family: monospace; font-size: 0.7rem; border: 1px solid #334155; color: #cbd5e1; }
-        input[type="number"], input[type="text"], select { background: #0f172a; border: 1px solid #334155; border-radius: 4px; padding: 6px 10px; color: #f1f5f9; outline: none; }
-        input:focus, select:focus { border-color: #a855f7; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
+
+        kbd {
+            background-color: var(--kbd-bg);
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            border: 1px solid var(--kbd-border);
+            color: var(--kbd-text);
+        }
+
+        input[type="number"], input[type="text"], select {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            padding: 6px 10px;
+            color: var(--text-primary);
+            outline: none;
+        }
+        input:focus, select:focus { border-color: var(--accent-primary); }
+
         .animate-spin-custom { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
         .social-link { transition: all 0.2s ease; cursor: pointer; }
-        .social-link:hover { transform: translateY(-2px); color: #a855f7; }
-        .tab-btn { transition: all 0.2s; border-bottom: 2px solid transparent; opacity: 0.6; color: #94a3b8; }
-        .tab-btn.active { border-color: #a855f7; color: #a855f7; opacity: 1; }
-        .recent-item { transition: all 0.15s ease; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
-        .recent-item:hover { background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.3); color: #a855f7; }
+        .social-link:hover { transform: translateY(-2px); color: var(--accent-primary); }
+
+        .tab-btn {
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+            opacity: 0.6;
+            color: var(--text-tertiary);
+        }
+        .tab-btn.active {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            opacity: 1;
+        }
+
+        .recent-item {
+            transition: all 0.15s ease;
+            cursor: pointer;
+            border: 1px solid var(--border-subtle);
+        }
+        .recent-item:hover {
+            background: var(--hover-overlay);
+            border-color: rgba(168, 85, 247, 0.3);
+            color: var(--accent-primary);
+        }
+
+        /* Settings Modal Styles */
+        .settings-modal-overlay {
+            backdrop-filter: blur(8px);
+            transition: opacity 0.3s ease;
+        }
+
+        .theme-btn, .size-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .theme-btn:hover, .size-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .theme-btn.active, .size-btn.active {
+            border-color: var(--accent-primary);
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        /* Drag and Drop Styles */
+        [draggable="true"] {
+            transition: opacity 0.2s, transform 0.2s;
+            cursor: grab;
+        }
+
+        [draggable="true"]:active {
+            cursor: grabbing;
+        }
+
+        [draggable="true"] h2 {
+            cursor: move;
+        }
+
+        .drag-over {
+            border: 2px solid var(--accent-primary) !important;
+            transform: translateY(4px);
+        }
+
+        .dragging {
+            opacity: 0.4;
+        }
+
+        #logOutput {
+            font-family: var(--font-mono);
+        }
+    
+        [data-theme="light"] .text-white {
+            color: var(--text-primary);
+        }
+        [data-theme="light"] .text-slate-200 {
+            color: #1e293b;
+        }
+        [data-theme="light"] .text-slate-300 {
+            color: #334155;
+        }
+        [data-theme="light"] .text-slate-400 {
+            color: #475569;
+        }
+        [data-theme="light"] .text-slate-500 {
+            color: #64748b;
+        }
+        [data-theme="light"] .text-purple-400 {
+            color: #7c3aed;
+        }
+        [data-theme="light"] .text-purple-500 {
+            color: #7c3aed;
+        }
+        [data-theme="light"] .text-yellow-500 {
+            color: #b45309;
+        }
+        [data-theme="light"] .text-red-400 {
+            color: #dc2626;
+        }
+        [data-theme="light"] .text-green-400 {
+            color: #16a34a;
+        }
+
+        /* Background Colors */
+        [data-theme="light"] .bg-slate-900 {
+            background-color: #ffffff;
+        }
+        [data-theme="light"] .bg-slate-900\/30 {
+            background-color: rgba(241, 245, 249, 0.6);
+        }
+        [data-theme="light"] .bg-slate-900\/50 {
+            background-color: rgba(226, 232, 240, 0.5);
+        }
+        [data-theme="light"] .bg-slate-800 {
+            background-color: #e2e8f0;
+        }
+        [data-theme="light"] .bg-purple-600 {
+            background-color: #7c3aed;
+        }
+        [data-theme="light"] .bg-purple-600\/20 {
+            background-color: rgba(124, 58, 237, 0.1);
+        }
+
+        /* Border Colors */
+        [data-theme="light"] .border-slate-700 {
+            border-color: #cbd5e1;
+        }
+        [data-theme="light"] .border-slate-700\/50 {
+            border-color: rgba(203, 213, 225, 0.5);
+        }
+        [data-theme="light"] .border-slate-800 {
+            border-color: #e2e8f0;
+        }
+        [data-theme="light"] .border-slate-800\/50 {
+            border-color: rgba(226, 232, 240, 0.5);
+        }
+        [data-theme="light"] .border-white\/5 {
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+        [data-theme="light"] .border-purple-500\/50 {
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+        [data-theme="light"] .border-purple-500\/10 {
+            border-color: rgba(124, 58, 237, 0.15);
+        }
+
+        /* Hover States */
+        [data-theme="light"] .hover\:text-white:hover {
+            color: var(--accent-primary);
+        }
+        [data-theme="light"] .hover\:text-purple-400:hover {
+            color: #6d28d9;
+        }
+        [data-theme="light"] .hover\:text-red-400:hover {
+            color: #b91c1c;
+        }
+        [data-theme="light"] .hover\:text-red-500:hover {
+            color: #b91c1c;
+        }
+        [data-theme="light"] .hover\:bg-purple-500\/20:hover {
+            background-color: rgba(124, 58, 237, 0.1);
+        }
+        [data-theme="light"] .hover\:bg-purple-600:hover {
+            background-color: #6d28d9;
+        }
+        [data-theme="light"] .hover\:bg-purple-500:hover {
+            background-color: #7c3aed;
+        }
+
+        /* Focus States */
+        [data-theme="light"] .focus\:border-purple-500:focus {
+            border-color: #7c3aed;
+        }
+
+        /* Form Elements */
+        [data-theme="light"] select,
+        [data-theme="light"] input[type="text"],
+        [data-theme="light"] input[type="number"] {
+            background: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: var(--text-primary) !important;
+        }
+        [data-theme="light"] select option {
+            background: #ffffff;
+            color: #0f172a;
+        }
+        [data-theme="light"] input[type="range"] {
+            background: #e2e8f0;
+        }
+        [data-theme="light"] .accent-purple-500 {
+            accent-color: #7c3aed;
+        }
+
+        [data-theme="light"] .bg-yellow-500 {
+            background-color: #d97706;
+        }
+        [data-theme="light"] .bg-green-500 {
+            background-color: #16a34a;
+        }
+        [data-theme="light"] .bg-red-500 {
+            background-color: #dc2626;
+        }
+
+        /* Footer */
+        [data-theme="light"] .tracking-\[0\.3em\] {
+            color: #7c3aed;
+        }
+        [data-theme="light"] .text-purple-600 {
+            accent-color: #7c3aed;
+        }
+
+        /* Log Output */
+        [data-theme="light"] #logOutput {
+            background: rgba(255, 255, 255, 0.7) !important;
+            border-color: rgba(0, 0, 0, 0.08) !important;
+            color: #334155 !important;
+        }
+        [data-theme="light"] #logOutput .text-purple-400 {
+            color: #7c3aed !important;
+        }
+        [data-theme="light"] #logOutput .text-red-400 {
+            color: #dc2626 !important;
+        }
+        [data-theme="light"] #logOutput .text-green-400 {
+            color: #16a34a !important;
+        }
+        [data-theme="light"] #logOutput .text-slate-300 {
+            color: #334155 !important;
+        }
+        [data-theme="light"] #logOutput .border-red-500 {
+            border-color: #dc2626 !important;
+        }
+        [data-theme="light"] #logOutput .border-green-500 {
+            border-color: #16a34a !important;
+        }
+        [data-theme="light"] .glass {
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        [data-theme="light"] .shadow-2xl {
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.2);
+        }
     </style>
 </head>
 <body class="p-6">
@@ -57,12 +406,19 @@
                     <span id="statusDot" class="status-dot bg-yellow-500"></span>
                     <span id="statusText" class="font-semibold text-slate-200">ADB: Init</span>
                 </div>
+                <!-- Settings Button -->
+                <button id="openSettings" class="glass px-3 py-3 rounded-xl hover:bg-purple-500/20 transition-all" title="Customization Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-300 hover:text-purple-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <aside class="lg:col-span-3 space-y-4">
-                <div class="glass p-5 rounded-2xl space-y-4">
+            <aside id="sidebarPanels" class="lg:col-span-3 space-y-4">
+                <div class="glass p-5 rounded-2xl space-y-4" data-panel-id="devices" draggable="true">
                     <div class="flex justify-between items-center border-b border-slate-700/50 pb-3">
                         <h2 class="text-sm font-bold uppercase text-purple-400 tracking-tight">Devices</h2>
                         <div class="flex gap-2">
@@ -116,7 +472,7 @@
                     </div>
                 </div>
 
-                <div class="glass p-5 rounded-2xl space-y-4">
+                <div class="glass p-5 rounded-2xl space-y-4" data-panel-id="shortcuts" draggable="true">
                     <h2 class="text-xs font-bold uppercase text-purple-400 border-b border-slate-700/50 pb-3">Shortcuts (Alt + Key)</h2>
                     <div class="grid grid-cols-2 gap-x-2 gap-y-3 text-[11px] text-slate-300">
                         <div class="flex justify-between items-center bg-slate-900/30 p-1.5 rounded-lg border border-white/5"><span>Full Screen</span><kbd>F</kbd></div>
@@ -127,8 +483,8 @@
                 </div>
             </aside>
 
-            <main class="lg:col-span-9 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <main id="mainPanels" class="lg:col-span-9 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" data-panel-id="settings-panels" draggable="true">
                     <div class="glass p-6 rounded-2xl space-y-4">
                         <h2 class="text-sm font-bold uppercase text-slate-300 border-b border-slate-700/50 pb-3">Video Engine Settings</h2>
                         <div class="space-y-4">
@@ -178,11 +534,94 @@
                         </div>
                     </div>
                 </div>
-                <div class="space-y-4">
+                <div class="space-y-4" data-panel-id="actions-panel" draggable="true">
                     <button id="startScrcpy" class="btn-primary w-full py-5 rounded-2xl text-white text-lg font-bold uppercase shadow-2xl tracking-widest transition-all">Launch Mirroring</button>
                     <div id="logOutput" class="glass p-4 rounded-2xl h-48 overflow-y-auto custom-scrollbar font-mono text-xs text-slate-300 border border-white/5"><div class="text-purple-400 font-bold border-b border-purple-500/10 mb-2 pb-1">[SYSTEM READY]</div></div>
                 </div>
             </main>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="hidden fixed inset-0 bg-black/50 settings-modal-overlay z-50 flex items-center justify-center p-4">
+            <div class="glass p-6 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto custom-scrollbar">
+                <!-- Header -->
+                <div class="flex justify-between items-center border-b pb-4 mb-6" style="border-color: var(--input-border);">
+                    <h2 class="text-xl font-bold" style="color: var(--accent-primary);">Customization Settings</h2>
+                    <button id="closeSettings" class="p-2 hover:bg-purple-500/20 rounded-lg transition-all" style="color: var(--text-tertiary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Theme Section -->
+                <div class="space-y-4 mb-6">
+                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);">Theme</h3>
+                    <div class="flex gap-4">
+                        <button class="theme-btn active" data-theme="dark">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                            </svg>
+                            Dark
+                        </button>
+                        <button class="theme-btn" data-theme="light">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                            Light
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-4 mb-6">
+                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);">Typography</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);">UI Font</label>
+                            <select id="fontFamily" class="w-full">
+                                <option value="inter" selected>Inter</option>
+                                <option value="roboto">Roboto</option>
+                                <option value="openSans">Open Sans</option>
+                                <option value="poppins">Poppins</option>
+                                <option value="system">System Default</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);">Terminal Font</label>
+                            <select id="monoFont" class="w-full">
+                                <option value="system" selected>System Monospace</option>
+                                <option value="jetbrains">JetBrains Mono</option>
+                                <option value="firaCode">Fira Code</option>
+                                <option value="cascadia">Cascadia Code</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs uppercase font-bold mb-2 block" style="color: var(--text-tertiary);">Font Size</label>
+                        <div class="flex gap-2">
+                            <button class="size-btn" data-size="small">Small</button>
+                            <button class="size-btn active" data-size="medium">Medium</button>
+                            <button class="size-btn" data-size="large">Large</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Layout Section -->
+                <div class="space-y-4 pb-4" style="border-bottom: 1px solid var(--input-border);">
+                    <h3 class="text-sm font-bold uppercase" style="color: var(--text-secondary);">Panel Layout</h3>
+                    <p class="text-xs italic" style="color: var(--text-tertiary);">Drag panel headers to reorder them in the main interface</p>
+                    <button id="resetLayout" class="text-xs uppercase font-bold px-4 py-2 rounded-lg border transition-all" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background=''">
+                        Reset to Default Layout
+                    </button>
+                </div>
+
+                <!-- Info Section -->
+                <div class="mt-4 p-4 rounded-lg" style="background: var(--input-bg); border: 1px solid var(--input-border);">
+                    <p class="text-xs" style="color: var(--text-tertiary);">
+                        <strong style="color: var(--accent-primary);">Note:</strong> All customization settings are saved automatically and persist across sessions.
+                    </p>
+                </div>
+            </div>
         </div>
 
         <footer class="mt-12 mb-8 text-center w-full">
@@ -208,6 +647,37 @@
 
         const PERSIST_KEY = 'scrcpy_gui_v21_settings_final';
         const HISTORY_KEY = 'scrcpy_gui_recent_ips';
+        const CUSTOMIZATION_KEY = 'scrcpy_gui_customization';
+
+        // Font Presets
+        const FONT_PRESETS = {
+            inter: { name: 'Inter', family: "'Inter', sans-serif", url: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap' },
+            roboto: { name: 'Roboto', family: "'Roboto', sans-serif", url: 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap' },
+            openSans: { name: 'Open Sans', family: "'Open Sans', sans-serif", url: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap' },
+            poppins: { name: 'Poppins', family: "'Poppins', sans-serif", url: 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap' },
+            system: { name: 'System Default', family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', url: null }
+        };
+
+        const MONO_FONTS = {
+            system: { name: 'System Monospace', family: 'monospace', url: null },
+            jetbrains: { name: 'JetBrains Mono', family: "'JetBrains Mono', monospace", url: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap' },
+            firaCode: { name: 'Fira Code', family: "'Fira Code', monospace", url: 'https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap' },
+            cascadia: { name: 'Cascadia Code', family: "'Cascadia Code', monospace", url: 'https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@400;500&display=swap' }
+        };
+
+        const FONT_SIZES = {
+            small: { label: 'Small', scale: 0.875 },
+            medium: { label: 'Medium', scale: 1.0 },
+            large: { label: 'Large', scale: 1.125 }
+        };
+
+        const defaultCustomization = {
+            theme: 'dark',
+            fontFamily: 'inter',
+            monoFont: 'system',
+            fontSize: 'medium',
+            panelOrder: null
+        };
         
         const inputIds = [
             'resolution', 'fps', 'bitrate', 'rotation', 
@@ -238,6 +708,242 @@
                 updateRecentList();
             } catch (e) {}
         }
+
+        // ==== CUSTOMIZATION FUNCTIONS ====
+
+        // Theme Management
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const custom = JSON.parse(localStorage.getItem(CUSTOMIZATION_KEY) || JSON.stringify(defaultCustomization));
+            custom.theme = theme;
+            localStorage.setItem(CUSTOMIZATION_KEY, JSON.stringify(custom));
+
+            // Update active button
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+        }
+
+        // Font Loading
+        function loadFont(fontKey, isMono = false) {
+            const fonts = isMono ? MONO_FONTS : FONT_PRESETS;
+            const font = fonts[fontKey];
+            if (!font) return;
+
+            // Remove existing font link
+            const attr = `data-font-${isMono ? 'mono' : 'main'}`;
+            const existingLink = document.querySelector(`link[${attr}]`);
+            if (existingLink) existingLink.remove();
+
+            // Add new font link if URL exists
+            if (font.url) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = font.url;
+                link.setAttribute(attr, 'true');
+                document.head.appendChild(link);
+            }
+
+            document.documentElement.style.setProperty(
+                isMono ? '--font-mono' : '--font-family',
+                font.family
+            );
+
+            const custom = JSON.parse(localStorage.getItem(CUSTOMIZATION_KEY) || JSON.stringify(defaultCustomization));
+            custom[isMono ? 'monoFont' : 'fontFamily'] = fontKey;
+            localStorage.setItem(CUSTOMIZATION_KEY, JSON.stringify(custom));
+        }
+
+        // Font Size
+        function setFontSize(size) {
+            const scale = FONT_SIZES[size].scale;
+            document.documentElement.style.setProperty('--font-scale', scale);
+
+            const custom = JSON.parse(localStorage.getItem(CUSTOMIZATION_KEY) || JSON.stringify(defaultCustomization));
+            custom.fontSize = size;
+            localStorage.setItem(CUSTOMIZATION_KEY, JSON.stringify(custom));
+
+            // Update active button
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.size === size);
+            });
+        }
+
+        // Drag and Drop for Panel Reordering
+        let draggedPanel = null;
+
+        function initDragDrop() {
+            document.querySelectorAll('[data-panel-id]').forEach(panel => {
+                panel.addEventListener('dragstart', handleDragStart);
+                panel.addEventListener('dragover', handleDragOver);
+                panel.addEventListener('drop', handleDrop);
+                panel.addEventListener('dragend', handleDragEnd);
+            });
+        }
+
+        function handleDragStart(e) {
+            draggedPanel = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (this !== draggedPanel && this.dataset.panelId) {
+                this.classList.add('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+
+            if (draggedPanel && draggedPanel !== this && this.dataset.panelId) {
+                const container = this.parentNode;
+                const allPanels = Array.from(container.children).filter(el => el.dataset.panelId);
+                const draggedIndex = allPanels.indexOf(draggedPanel);
+                const targetIndex = allPanels.indexOf(this);
+
+                if (draggedIndex < targetIndex) {
+                    container.insertBefore(draggedPanel, this.nextSibling);
+                } else {
+                    container.insertBefore(draggedPanel, this);
+                }
+
+                savePanelOrder(container.id);
+            }
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        }
+
+        function savePanelOrder(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const order = Array.from(container.children)
+                .filter(el => el.dataset.panelId)
+                .map(p => p.dataset.panelId);
+
+            const custom = JSON.parse(localStorage.getItem(CUSTOMIZATION_KEY) || JSON.stringify(defaultCustomization));
+            if (!custom.panelOrder) custom.panelOrder = {};
+            custom.panelOrder[containerId] = order;
+            localStorage.setItem(CUSTOMIZATION_KEY, JSON.stringify(custom));
+        }
+
+        function loadPanelOrder() {
+            const custom = JSON.parse(localStorage.getItem(CUSTOMIZATION_KEY) || JSON.stringify(defaultCustomization));
+            if (!custom.panelOrder) return;
+
+            Object.keys(custom.panelOrder).forEach(containerId => {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const order = custom.panelOrder[containerId];
+                order.forEach(panelId => {
+                    const panel = container.querySelector(`[data-panel-id="${panelId}"]`);
+                    if (panel) container.appendChild(panel);
+                });
+            });
+        }
+
+        function resetLayout() {
+            const custom = JSON.parse(localStorage.getItem(CUSTOMIZATION_KEY) || JSON.stringify(defaultCustomization));
+            custom.panelOrder = null;
+            localStorage.setItem(CUSTOMIZATION_KEY, JSON.stringify(custom));
+            location.reload();
+        }
+
+        // Load All Customizations
+        function loadCustomization() {
+            const custom = JSON.parse(localStorage.getItem(CUSTOMIZATION_KEY) || JSON.stringify(defaultCustomization));
+
+            // Apply theme
+            setTheme(custom.theme);
+
+            // Apply fonts
+            loadFont(custom.fontFamily, false);
+            loadFont(custom.monoFont, true);
+            setFontSize(custom.fontSize);
+
+            // Apply panel order
+            loadPanelOrder();
+
+            // Update UI dropdowns
+            const fontFamilyEl = document.getElementById('fontFamily');
+            const monoFontEl = document.getElementById('monoFont');
+            if (fontFamilyEl) fontFamilyEl.value = custom.fontFamily;
+            if (monoFontEl) monoFontEl.value = custom.monoFont;
+        }
+
+        // Settings Modal Event Listeners
+        function initSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            const openBtn = document.getElementById('openSettings');
+            const closeBtn = document.getElementById('closeSettings');
+            const resetBtn = document.getElementById('resetLayout');
+
+            // Open/Close modal
+            if (openBtn) {
+                openBtn.addEventListener('click', () => {
+                    modal.classList.remove('hidden');
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    modal.classList.add('hidden');
+                });
+            }
+
+            // Close on overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+
+            // Theme buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setTheme(btn.dataset.theme);
+                });
+            });
+
+            // Font family
+            const fontFamilyEl = document.getElementById('fontFamily');
+            if (fontFamilyEl) {
+                fontFamilyEl.addEventListener('change', () => {
+                    loadFont(fontFamilyEl.value, false);
+                });
+            }
+
+            // Mono font
+            const monoFontEl = document.getElementById('monoFont');
+            if (monoFontEl) {
+                monoFontEl.addEventListener('change', () => {
+                    loadFont(monoFontEl.value, true);
+                });
+            }
+
+            // Font size buttons
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setFontSize(btn.dataset.size);
+                });
+            });
+
+            // Reset layout
+            if (resetBtn) {
+                resetBtn.addEventListener('click', resetLayout);
+            }
+        }
+
+        // ==== END CUSTOMIZATION FUNCTIONS ====
+
 
         inputIds.forEach(id => {
             const el = document.getElementById(id);
@@ -410,6 +1116,9 @@
         };
 
         loadSettings();
+        loadCustomization();  
+        initSettingsModal();  
+        initDragDrop();   
         validateScrcpy();
     </script>
 </body>
