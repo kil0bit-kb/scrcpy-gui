@@ -82,9 +82,9 @@
 
           desktopItems = [
             (pkgs.makeDesktopItem {
-              name = "scrcpy-gui-v3";
-              exec = "scrcpy-gui-v3";
-              icon = "scrcpy-gui-v3";
+              name = "scrcpy-gui-v4";
+              exec = "scrcpy-gui-v4";
+              icon = "scrcpy-gui-v4";
               desktopName = "ScrcpyGUI";
               comment = "A modern GUI for Scrcpy written in React and Rust";
               categories = [
@@ -97,15 +97,15 @@
           postInstall = ''
             # Install the standard sized icons
             for size in 32 64 128; do
-              install -Dm644 icons/''${size}x''${size}.png $out/share/icons/hicolor/''${size}x''${size}/apps/scrcpy-gui-v3.png
+              install -Dm644 icons/''${size}x''${size}.png $out/share/icons/hicolor/''${size}x''${size}/apps/scrcpy-gui-v4.png
             done
 
             # Install high-resolution icons for GNOME/modern desktops
-            install -Dm644 icons/128x128@2x.png $out/share/icons/hicolor/256x256/apps/scrcpy-gui-v3.png
-            install -Dm644 icons/icon.png $out/share/icons/hicolor/512x512/apps/scrcpy-gui-v3.png
+            install -Dm644 icons/128x128@2x.png $out/share/icons/hicolor/256x256/apps/scrcpy-gui-v4.png
+            install -Dm644 icons/icon.png $out/share/icons/hicolor/512x512/apps/scrcpy-gui-v4.png
 
             # Install a fallback pixmap just in case
-            install -Dm644 icons/icon.png $out/share/pixmaps/scrcpy-gui-v3.png
+            install -Dm644 icons/icon.png $out/share/pixmaps/scrcpy-gui-v4.png
           '';
 
           preFixup = ''
