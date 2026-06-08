@@ -6,10 +6,11 @@ import { zhCN } from './locales/zh-CN';
 import { zhTW } from './locales/zh-TW';
 import { ru } from './locales/ru';
 import { id } from './locales/id';
+import { tr } from './locales/tr'; // Türkçe dil paketi eklendi
 
 
-export type Locale = 'en' | 'fr' | 'pt-BR' | 'zh-CN' | 'zh-TW' | 'ru' | 'id';
-export const SUPPORTED_LOCALES: Locale[] = ['en', 'fr', 'pt-BR', 'zh-CN', 'zh-TW', 'ru', 'id'];
+export type Locale = 'en' | 'fr' | 'pt-BR' | 'zh-CN' | 'zh-TW' | 'ru' | 'id' | 'tr';
+export const SUPPORTED_LOCALES: Locale[] = ['en', 'fr', 'pt-BR', 'zh-CN', 'zh-TW', 'ru', 'id', 'tr'];
 const STORAGE_KEY = 'scrcpy_locale';
 const localeBundles: Record<Locale, Translations> = {
     en,
@@ -18,7 +19,8 @@ const localeBundles: Record<Locale, Translations> = {
     'zh-CN': zhCN,
     'zh-TW': zhTW,
     ru,
-    id
+    id,
+    tr // Türkçe bundle eşleşmesi eklendi
 };
 
 type Primitive = string | number | boolean;
@@ -85,6 +87,7 @@ function detectInitialLocale(): Locale {
         if (lower.startsWith('ru')) return 'ru';
         if (lower.startsWith('fr')) return 'fr';
         if (lower.startsWith('id')) return 'id';
+        if (lower.startsWith('tr')) return 'tr'; // Tarayıcı Türkçe ise otomatik Türkçe başlar
         if (lower.startsWith('en')) return 'en';
     }
 

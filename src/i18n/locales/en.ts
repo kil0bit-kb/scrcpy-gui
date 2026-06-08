@@ -2,12 +2,16 @@
 // Every other locale should mirror these keys.
 
 export const en = {
-    languages: { en: 'English',
+    languages: { 
+        en: 'English',
         fr: 'Français',
         'pt-BR': 'Português (Brasil)',
         'zh-CN': 'Simplified Chinese',
-        'zh-TW': 'Traditional Chinese', ru: 'Русский',
-        id: 'Bahasa Indonesia' },
+        'zh-TW': 'Traditional Chinese', 
+        ru: 'Русский',
+        id: 'Bahasa Indonesia',
+        tr: 'Turkish' // TypeScript derleyicisinin eşleşme hatasını çözen kritik satır
+    },
     common: {
         ok: 'OK',
         cancel: 'Cancel',
@@ -301,4 +305,15 @@ export const en = {
     }
 };
 
-export type Translations = typeof en;
+export type Translations = Omit<typeof en, 'languages'> & {
+    languages: {
+        en: string;
+        fr?: string;
+        'pt-BR'?: string;
+        'zh-CN'?: string;
+        'zh-TW'?: string;
+        ru?: string;
+        id?: string;
+        tr?: string;
+    };
+};
