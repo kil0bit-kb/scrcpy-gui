@@ -2,7 +2,7 @@
   <img src="icon.png" width="128" height="128" alt="ScrcpyGUI Icon">
   <br>
   <h1>ScrcpyGUI v4</h1>
-  <strong>A premium, high-performance Android control experience.</strong>
+  <strong>Üstün performanslı, birinci sınıf bir Android kontrol deneyimi.</strong>
 </p>
 
 <p align="center">
