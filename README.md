@@ -62,7 +62,7 @@ USB Hata Ayıklamayı nasıl etkinleştireceğinizi, Kablosuz Eşleştirmeyi nas
 * [Tauri v2 Gereksinimleri](https://v2.tauri.app/start/prerequisites/)
 
 ### Derleme Talimatları
-```bash
+
 npm install
 npm run tauri dev   # Geliştirme Modu
 npm run tauri build # Üretim/Dağıtım Sürümü (Production)
