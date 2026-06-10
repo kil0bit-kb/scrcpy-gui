@@ -87,6 +87,8 @@ ScrcpyGUI günlük iş akışınıza yardımcı oluyorsa, orijinal geliştiriciy
 🙏 Teşekkürler / Emeği Geçenler
 ScrcpyGUI, aşağıdaki harika açık kaynaklı projeler sayesinde hayata geçirilmiştir:
 
+scrcpy-gui: A modern, high-performance GUI for the scrcpy
+
 scrcpy: Ultra hızlı çekirdek motor.
 
 Tauri: Masaüstü uygulaması için güvenli ve hafif çerçeve (framework).
