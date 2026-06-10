@@ -87,7 +87,7 @@ ScrcpyGUI günlük iş akışınıza yardımcı oluyorsa, orijinal geliştiriciy
 🙏 Teşekkürler / Emeği Geçenler
 ScrcpyGUI, aşağıdaki harika açık kaynaklı projeler sayesinde hayata geçirilmiştir:
 
-scrcpy-gui: A modern, high-performance GUI for the scrcpy
+scrcpy-gui: scrcpy için modern, yüksek performanslı bir grafik kullanıcı arayüzü (GUI)
 
 scrcpy: Ultra hızlı çekirdek motor.
 
