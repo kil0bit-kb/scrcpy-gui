@@ -1,144 +1,159 @@
-# 📖 ScrcpyGUI v4 - User Guide
+# 📖 ScrcpyGUI v4 - Kullanıcı Kılavuzu
 
-This guide provides everything you need to know to get started with ScrcpyGUI, from initial setup to advanced feature usage.
-
----
-
-## 📋 Table of Contents
-1. [Prerequisites](#-prerequisites)
-2. [Installation Guide](#-installation-guide)
-3. [Android Device Setup](#-android-device-setup)
-4. [Connecting Your Device](#-connecting-your-device)
-5. [Feature Guide](#-feature-guide)
-6. [Troubleshooting](#-troubleshooting)
+Bu kılavuz; ilk kurulumdan gelişmiş özelliklerin kullanımına kadar ScrcpyGUI hakkında bilmeniz gereken her şeyi içerir.
 
 ---
 
-## 🛠 Prerequisites
+## 📋 İçindekiler
 
-Before using ScrcpyGUI, ensure you have the following:
-
-- **Android Device**: Running Android 5.0 or higher (Android 12+ required for Camera Mode, Android 11+ for Desktop Mode).
-- **USB Cable**: A high-quality data cable (avoid charging-only cables).
-- **PC**: Windows, macOS, or Linux.
-- **Scrcpy Binaries**: The app can download these for you automatically, but you can also provide your own.
+1. [Gereksinimler](#-gereksinimler)
+2. [Kurulum Kılavuzu](#-kurulum-kılavuzu)
+3. [Android Cihaz Kurulumu](#-android-cihaz-kurulumu)
+4. [Cihazınızı Bağlama](#-cihazınızı-bağlama)
+5. [Özellik Kılavuzu](#-özellik-kılavuzu)
+6. [Sorun Giderme](#-sorun-giderme)
 
 ---
 
-## 🚀 Installation Guide
+## 🛠 Gereksinimler
+
+ScrcpyGUI'yi kullanmaya başlamadan önce aşağıdakilere sahip olduğunuzdan emin olun:
+* **Android Cihaz:** Android 5.0 veya üzeri bir sürüm (Kamera Modu için Android 12+, Masaüstü Modu için Android 11+ gereklidir).
+* **USB Kablosu:** Yüksek kaliteli bir veri kablosu (sadece şarj eden kablolardan kaçının).
+* **Bilgisayar:** Windows, macOS veya Linux.
+* **Scrcpy Dosyaları (Binaries):** Uygulama bunları sizin için otomatik olarak indirebilir, ancak isterseniz kendi dosyalarınızı da tanıtabilirsiniz.
+
+---
+
+## 🚀 Kurulum Kılavuzu
 
 ### 🪟 Windows
-1. Download the latest `.exe` or `.msi` from the [Releases](https://github.com/kil0bit-kb/scrcpy-gui/releases) page.
-2. Run the installer or standalone executable.
-3. **Smart Setup**: On the first launch, ScrcpyGUI will detect if you have `scrcpy` installed. If not, it will offer a one-click download.
-4. **Automated Updates**: When launched, ScrcpyGUI v4 will automatically check your installed version against Genymobile's latest official release and prompt you with a beautiful one-click update modal if a new version is available.
+1. Releases (Sürümler) sayfasından en son `.exe` veya `.msi` dosyasını indirin.
+2. Kurulum dosyasını veya taşınabilir (standalone) uygulamayı çalıştırın.
+* **Akıllı Kurulum:** İlk açılışta ScrcpyGUI, bilgisayarınızda `scrcpy` kurulu olup olmadığını tespit eder. Eğer bulamazsa, tek tıkla indirmeniz için bir seçenek sunar.
+* **Otomatik Güncellemeler:** ScrcpyGUI v4 her açıldığında, kurulu sürümünüzü Genymobile'ın en son resmi sürümüyle otomatik olarak karşılaştırır ve yeni bir sürüm varsa sizi şık bir güncelleme penceresiyle bilgilendirir.
 
 ### 🍎 macOS
-1. Download the `.dmg` file matching your architecture (**Intel** or **Apple Silicon/M1/M2**).
-2. Drag the **ScrcpyGUI** icon into your **Applications** folder.
-3. **Security Note**: Since the app is not signed by Apple, you may need to:
-   - Go to **System Settings > Privacy & Security**.
-   - Scroll down to "Security" and click **Open Anyway**.
+1. İşlemci mimarinize uygun olan `.dmg` dosyasını indirin (Intel veya Apple Silicon/M1/M2).
+2. ScrcpyGUI simgesini **Uygulamalar (Applications)** klasörünüze sürükleyin.
+* **Güvenlik Notu:** Uygulama Apple tarafından dijital olarak imzalanmadığı için şu adımları takip etmeniz gerekebilir:
+  1. *Sistem Ayarları > Gizlilik ve Güvenlik* bölümüne gidin.
+  2. "Güvenlik" başlığı altına kaydırın ve *Yine de Aç (Open Anyway)* seçeneğine tıklayın.
 
 ### 🐧 Linux
-1. Download the `.AppImage` or `.deb` package.
-2. **AppImage**: Right-click -> Properties -> Permissions -> **Allow executing file as program**. Double-click to run.
-3. **Dependencies**: Ensure you have the following installed if you encounter issues:
-   ```bash
-   sudo apt install libgtk-3-dev libwebkit2gtk-4.1-dev
-   ```
+1. `.AppImage` veya `.deb` paketini indirin.
+* **AppImage Kullanımı:** Dosyaya sağ tıklayın -> *Özellikler -> İzinler -> Dosyanın bir program gibi çalıştırılmasına izin ver*. Ardından çalıştırmak için çift tıklayın.
+* **Bağımlılıklar:** Herhangi bir sorunla karşılaşırsanız aşağıdaki gerekli paketlerin kurulu olduğundan emin olun:
+  ```bash
+  sudo apt install libgtk-3-dev libwebkit2gtk-4.1-dev
 
----
+  📱 Android Cihaz Kurulumu
+ScrcpyGUI'nin telefonunuzla iletişim kurabilmesi için telefonunuzda Geliştirici Seçenekleri ve USB Hata Ayıklama modlarını etkinleştirmeniz gerekir.
 
-## 📱 Android Device Setup
+1. Geliştirici Seçeneklerini Etkinleştirme
+Android cihazınızda Ayarlar uygulamasını açın.
 
-You must enable **Developer Options** and **USB Debugging** on your phone for ScrcpyGUI to communicate with it.
+Telefon Hakkında bölümüne gidin (genellikle en alttadır).
 
-### 1. Enable Developer Options
-1. Open **Settings** on your Android device.
-2. Go to **About Phone** (usually at the bottom).
-3. Find the **Build Number** and tap it **7 times** rapidly.
-4. You will see a toast message: "You are now a developer!"
+Derleme Numarası (Build Number) seçeneğini bulun ve ardı ardına 7 kez tıklayın.
 
-### 2. Enable USB Debugging
-1. Go back to the main **Settings** menu.
-2. Go to **System > Developer Options** (or search for it).
-3. Toggle ON **USB Debugging**.
-4. **Important for Mice/Keyboards**: If you see options like **Install via USB** or **USB Debugging (Security Settings)**, enable them too.
+Ekranda "Artık bir geliştiricisiniz!" şeklinde küçük bir bildirim (toast) göreceksiniz.
 
----
+2. USB Hata Ayıklamayı Etkinleştirme
+Ana Ayarlar menüsüne geri dönün.
 
-## 🌐 Connecting Your Device
+Sistem > Geliştirici Seçenekleri yolunu izleyin (veya arama çubuğuna yazın).
 
-### USB Connection (Recommended)
-1. Plug your phone into your PC via USB.
-2. A prompt will appear on your phone: "Allow USB Debugging?".
-3. Check **Always allow from this computer** and tap **Allow**.
-4. In ScrcpyGUI, click the **Refresh** button in the header if the device doesn't appear automatically.
+USB Hata Ayıklama seçeneğini bulun ve aktif hale getirin.
 
-### Wireless Connection (Android 11+)
-1. Ensure both your Phone and PC are on the **same Wi-Fi network**.
-2. In **Developer Options**, toggle ON **Wireless Debugging**.
-3. Tap on the **Wireless Debugging** text to enter its settings.
-4. In ScrcpyGUI, click the **🌐 Wireless Connect** button in the sidebar.
-5. Tap **Pair device with pairing code** on your phone.
-6. Enter the **IP Address**, **Port**, and **Pairing Code** shown on your phone into ScrcpyGUI.
-7. Once paired, ScrcpyGUI will remember your device for future one-click connections!
+Fare/Klavye İçin Önemli: Eğer cihazınızda varsa "USB üzerinden yükle" veya "USB Hata Ayıklama (Güvenlik Ayarları)" seçeneklerini de mutlaka etkinleştirin.
 
----
+🌐 Cihazınızı Bağlama
+USB Bağlantısı (Önerilen)
+Telefonunuzu USB kablosuyla bilgisayarınıza bağlayın.
 
-## 🎮 Feature Guide
+Telefon ekranında "USB Hata Ayıklamasına izin verilsin mi?" uyarısı çıkacaktır.
 
-### ⌨️ HID Keyboard & Mouse (OTG Mode)
-ScrcpyGUI v4 features advanced hardware simulation (HID) for a lag-free experience.
-- **HID Keyboard**: Simulates a real USB keyboard. This is the **only way** to fix issues with Polish accents, special characters, and international layouts.
-- **HID Mouse**: Provides a high-precision, native cursor feel. Eliminates the "double cursor" or lag found in standard mirroring.
-- **Pure HID (No Mirror)**: Perfect for when you only want to use your PC as a "controller" for your phone (e.g., typing long messages or playing games while looking at the phone screen).
+"Bu bilgisayardan her zaman izin ver" seçeneğini işaretleyin ve İzin Ver'e dokunun.
 
-### 📹 Pro Camera Mode (Webcam)
-Turn your phone into a professional, hardware-controlled webcam.
-1. Change **Capture Source** to **Camera**.
-2. **Scan Lenses**: Click the **Refresh Lenses** button. ScrcpyGUI will instantly scan your phone and populate a spacious dropdown with all physical camera lenses, native resolutions, and zoom capabilities.
-3. **Select Camera**: Select your desired lens (e.g., Ultra-Wide, Front, or Main Back) from the list.
-4. **Advanced Controls**:
-   - **Camera Torch**: Toggle your device's physical flashlight on or off directly from the GUI.
-   - **Camera Zoom**: Adjust the dynamic zoom level slider (1.0x to 5.0x) to frame your feed perfectly.
-   - **Failsafe Resolution**: Standard high-megapixel phone lenses can crash scrcpy if launched at their native 4:3 photo resolution (e.g., `4080x3060`) due to hardware video encoder limits. ScrcpyGUI automatically maps your selected resolution and defaults to a safe 1080p standard size (`1920x1080`), ensuring a crash-free experience.
-   - **FPS**: Set to **Auto** (recommended) to let your device run at its native capture frame rate, or select **30 FPS**.
-5. **OBS Integration**: Open **OBS Studio**, add a "Window Capture" source, and select the ScrcpyGUI window. Use OBS's **Virtual Camera** to use your phone in Zoom, Teams, or Discord.
+Cihazınız ScrcpyGUI üzerinde otomatik olarak görünmezse, üst menüdeki Yenile (Refresh) butonuna tıklayın.
 
-### 🖥️ Desktop Mode (Virtual Display)
-Turn your Android device into a secondary workspace or virtual monitor.
-1. Change **Capture Source** to **Desktop**.
-2. **Flex Display**: Toggle ON **Flex Display**. Dragging and resizing the scrcpy client window borders on your computer will dynamically scale the resolution and aspect ratio of your phone's virtual display on the fly to fit your window perfectly with no black bars.
-3. **Background Color**: Customize the window borders or letterbox border colors by typing in a hex value (e.g., `#2b2d42`) with a live preview swatch.
-4. **Keep Active**: Enable **Keep Active** to simulate activity and prevent the virtual display from turning off or sleeping during mirroring sessions.
+Kablosuz Bağlantı (Android 11+)
+Telefonunuzun ve bilgisayarınızın aynı Wi-Fi ağına bağlı olduğundan emin olun.
 
-### 🖥 Graphics Renderer (Render API)
-You can choose which graphics renderer scrcpy should request for video display.
+Geliştirici Seçeneklerinden Kablosuz Hata Ayıklama modunu açın.
 
-- **Auto**: Recommended default. Lets scrcpy choose the best renderer.
-- **Manual Selection**: Options like Direct3D, OpenGL, OpenGL ES, Metal, or Software may appear.
+Ayarlarına girmek için "Kablosuz Hata Ayıklama" metninin üzerine dokunun.
 
-Renderer choices are **capability-aware**:
+ScrcpyGUI'de yan menüdeki 🌐 Wireless Connect (Kablosuz Bağlantı) butonuna tıklayın.
 
-- ScrcpyGUI reads what your installed scrcpy build advertises.
-- ScrcpyGUI filters options by your host OS.
-- Unsupported options are hidden automatically (e.g. Metal is only shown on macOS).
+Telefonunuzda "Cihazı eşleştirme koduyla eşleştir" seçeneğine dokunun.
 
-### 📂 File Transfers & APKs
-- **Install Apps**: Just drag an `.apk` file from your PC and drop it anywhere into the ScrcpyGUI window.
-- **Transfer Files**: Drag any file into the window to automatically push it to your device's `/sdcard/Download/` folder.
+Telefonunuzda görünen IP Adresini, Portu ve Eşleştirme Kodunu ScrcpyGUI'deki ilgili alanlara girin.
 
----
+Eşleştirme tamamlandığında ScrcpyGUI, gelecekteki tek tıkla bağlantılar için cihazınızı hatırlayacaktır!
 
-## 🔧 Troubleshooting
+🎮 Özellik Kılavuzu
+⌨️ HID Klavye & Fare (OTG Modu)
+ScrcpyGUI v4, gecikmesiz bir deneyim için gelişmiş donanım simülasyonu (HID) teknolojisine sahiptir.
 
-- **Device not found?**: Try a different USB port or cable. Ensure "USB Debugging" is still active.
-- **Laggy video?**: Lower the **Bitrate** (8M-12M is usually perfect) or the **Resolution**.
-- **ADB Error?**: If commands are failing, click the **Kill ADB** button in the sidebar. This resets the connection bridge without closing the app.
-- **Binary Error?**: If the app says it cannot find scrcpy, use the **Downloader** in the top right corner.
+HID Klavye: Gerçek bir USB klavyeyi simüle eder. Türkçe karakterler, özel işaretler ve uluslararası klavye düzenlerinde yaşanan sorunları çözmenin tek yolu budur.
 
----
+HID Fare: Yüksek hassasiyetli ve yerel bir imleç hissi sağlar. Standart ekran yansıtmadaki "çift imleç" veya gecikme sorununu tamamen ortadan kaldırır.
 
-*Found a bug or have a suggestion? Open an issue on [GitHub](https://github.com/kil0bit-kb/scrcpy-gui/issues)!*
+Saf HID (Ekran Yansıtmasız): Bilgisayarınızı sadece telefonunuz için bir "kumanda/kontrolcü" olarak kullanmak istediğiniz anlar için mükemmeldir (örneğin telefon ekranına bakarak uzun mesajlar yazmak veya oyun oynamak için).
+
+📹 Profesyonel Kamera Modu (Webcam)
+Telefonunuzu profesyonel, donanım kontrollü bir web kamerasına dönüştürün.
+
+Yansıtma Kaynağını (Capture Source) Camera (Kamera) olarak değiştirin.
+
+Lensleri Yenile (Refresh Lenses): Butona tıkladığınızda ScrcpyGUI telefonunuzu anında tarar ve tüm fiziksel kamera lenslerini, desteklenen çözünürlükleri ve yakınlaştırma aralıklarını geniş bir açılır menüde listeler.
+
+Kamera Seçimi: Listeden dilediğiniz lensi (Ultra Geniş Açı, Ön Kamera veya Ana Arka Kamera) seçin.
+
+Geliştirilmiş Kontroller:
+
+Kamera Flaşı (Torch): Cihazınızın fiziksel flaşını doğrudan arayüzden açıp kapatın.
+
+Kamera Yakınlaştırma (Zoom): Çekim açınızı mükemmel şekilde ayarlamak için dinamik yakınlaştırma kaydırıcısını (1.0x - 5.0x) kullanın.
+
+Güvenli Çözünürlük (Failsafe): Standart yüksek megapikselli telefon lensleri, donanım video kodlayıcı sınırları nedeniyle orijinal 4:3 fotoğraf çözünürlüklerinde (örn. 4080x3060) başlatıldığında scrcpy'yi çökertebilir. ScrcpyGUI seçtiğiniz çözünürlüğü otomatik olarak haritalandırır ve çökmeleri önlemek için varsayılan olarak güvenli 1080p standart boyutuna (1920x1080) sadık kalır.
+
+FPS: Cihazınızın kendi yakalama hızında çalışması için Auto (Önerilen) olarak bırakın veya 30 FPS'yi seçin.
+
+OBS Entegrasyonu: OBS Studio'yu açın, bir "Pencere Yakalama" kaynağı ekleyin ve ScrcpyGUI penceresini seçin. Telefonunuzu Zoom, Teams veya Discord'da kullanmak için OBS'in Sanal Kamerasını (Virtual Camera) aktif hale getirebilirsiniz.
+
+🖥️ Masaüstü Modu (Sanal Ekran)
+Android cihazınızı ikincil bir çalışma alanına veya sanal bir monitöre dönüştürün.
+
+Yansıtma Kaynağını (Capture Source) Desktop (Masaüstü) olarak değiştirin.
+
+Esnek Ekran (Flex Display): Bu özelliği açtığınızda, bilgisayarınızdaki scrcpy penceresinin kenarlarını sürükleyip yeniden boyutlandırmak, telefonunuzun sanal ekran çözünürlüğünü ve en boy oranını anında dinamik olarak ölçeklendirir. Siyah kenarlıklar olmadan pencereye tam oturur.
+
+Arka Plan Rengi: Canlı renk önizleme kutucuğunu kullanarak veya bir HEX kodu (örn. #2b2d42) yazarak pencere kenarlıklarının veya sinemaskop şeritlerinin rengini özelleştirin.
+
+Aktif Tut (Keep Active): Yansıtma oturumları sırasında genel cihaz ayarlarını değiştirmek zorunda kalmadan sanal ekranın kapanmasını veya uyku moduna geçmesini önlemek için bu özelliği etkinleştirin.
+
+🖥 Grafik Oluşturucu (Render API)
+Scrcpy'nin video ekranı için hangi grafik oluşturucu altyapısını talep edeceğini seçebilirsiniz.
+
+Auto (Otomatik): Önerilen varsayılandır. En iyi oluşturucuyu scrcpy'nin seçmesine izin verir.
+
+Manuel Seçim: Sistem yeteneklerinize göre Direct3D, OpenGL, OpenGL ES, Metal veya Software seçenekleri görünebilir.
+
+İşletim Sistemine Duyarlı Filtreleme: ScrcpyGUI, bilgisayarınızda kurulu olan scrcpy sürümünün neleri desteklediğini okur ve bunları işletim sisteminize göre filtreler. Desteklenmeyen seçenekler otomatik olarak gizlenir (örneğin Metal seçeneği yalnızca macOS üzerinde gösterilir).
+
+📂 Dosya Transferleri ve APK Kurulumu
+Uygulama Kurma: Bilgisayarınızdan herhangi bir .apk dosyasını sürükleyip ScrcpyGUI penceresinin herhangi bir yerine bırakmanız yeterlidir.
+
+Dosya Gönderme: Herhangi bir dosyayı pencereye sürükleyip bıraktığınızda, dosya otomatik olarak cihazınızın /sdcard/Download/ klasörüne gönderilir.
+
+🔧 Sorun Giderme
+Cihaz bulunamadı mı?: Farklı bir USB bağlantı noktası veya kablo deneyin. "USB Hata Ayıklama" modunun hala aktif olduğundan emin olun.
+
+Görüntüde gecikme (lag) mi var?: Bit hızını (Bitrate) düşürün (8M-12M arası genellikle idealdir) veya Çözünürlüğü azaltın.
+
+ADB Hatası mı alıyorsunuz?: Komutlar yanıt vermiyorsa yan menüdeki Kill ADB butonuna tıklayın. Bu işlem, uygulamayı kapatmadan bağlantı köprüsünü sıfırlayacaktır.
+
+Dosya (Binary) Hatası mı var?: Uygulama scrcpy dosyasını bulamadığını belirtiyorsa, sağ üst köşedeki İndiriciyi (Downloader) kullanarak gerekli dosyaları edinin.
