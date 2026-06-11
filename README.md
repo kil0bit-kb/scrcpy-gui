@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" width="128" height="128" alt="ScrcpyGUI Icon">
+  <img src="Banner.png" alt="ScrcpyGUI Banner">
 </p>
 
 <h1 align="center">ScrcpyGUI</h1>
