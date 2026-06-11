@@ -32,11 +32,6 @@ fn is_audio_codec_error(text: &str) -> bool {
     mentions_codec && mentions_failure
 }
 
-#[tauri::command]
-pub fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 fn get_binary_path(binary_name: &str, custom_folder: Option<String>) -> String {
     let exe_ext = std::env::consts::EXE_EXTENSION;
     let binary_filename = if exe_ext.is_empty() {
@@ -200,50 +195,6 @@ pub async fn get_devices(custom_path: Option<String>) -> serde_json::Value {
 }
 
 #[tauri::command]
-pub async fn get_mdns_devices(custom_path: Option<String>) -> serde_json::Value {
-    let adb_path = get_binary_path("adb", custom_path);
-    
-    let output = create_command(&adb_path)
-        .arg("mdns")
-        .arg("services")
-        .output()
-        .await;
-
-    match output {
-        Ok(o) => {
-            if o.status.success() {
-                let out_str = String::from_utf8_lossy(&o.stdout);
-                let mut services = Vec::new();
-                let mut seen = std::collections::HashSet::new();
-                for line in out_str.lines().skip(1) {
-                    let parts: Vec<&str> = line.split('\t').collect();
-                    if parts.len() >= 3 {
-                        let name = parts[0].trim();
-                        let service = parts[1].trim();
-                        let address = parts[2].trim();
-                        let key = format!("{}|{}|{}", name, service, address);
-                        if !seen.contains(&key) {
-                            services.push(json!({
-                                "name": name,
-                                "service": service,
-                                "address": address
-                            }));
-                            seen.insert(key);
-                        }
-                    }
-                }
-                json!({ "error": false, "services": services })
-            } else {
-                json!({ "error": true, "message": "ADB mdns returned error" })
-            }
-        },
-        Err(e) => {
-            json!({ "error": true, "message": e.to_string() })
-        }
-    }
-}
-
-#[tauri::command]
 pub async fn adb_connect(window: Window, ip: String, custom_path: Option<String>) -> Result<serde_json::Value, String> {
     let adb_path = get_binary_path("adb", custom_path);
     let _ = window.emit("scrcpy-log", format!("[SYSTEM] Attempting wireless connection to {}...", ip));
@@ -301,26 +252,6 @@ pub async fn adb_pair(window: Window, ip: String, code: String, custom_path: Opt
     let success = output.status.success() && (out_text.contains("Successfully paired") || err_text.contains("Successfully paired"));
 
     Ok(json!({ "success": success, "message": if out_text.is_empty() { err_text } else { out_text } }))
-}
-
-#[tauri::command]
-pub async fn adb_shell(device: String, command: String, custom_path: Option<String>) -> serde_json::Value {
-    let adb_path = get_binary_path("adb", custom_path);
-    
-    let output = create_command(&adb_path)
-        .arg("-s")
-        .arg(&device)
-        .arg("shell")
-        .arg(&command)
-        .output()
-        .await;
-
-    match output {
-        Ok(o) => {
-             json!({ "success": o.status.success(), "output": String::from_utf8_lossy(&o.stdout).to_string() })
-        },
-        Err(e) => json!({ "success": false, "message": e.to_string() })
-    }
 }
 
 #[tauri::command]

@@ -19,9 +19,6 @@ export default function SessionBehavior({ config, setConfig }: SessionBehaviorPr
     const handleChange = (field: keyof ScrcpyConfig, value: any) => {
         const newConfig = { ...config, [field]: value };
         setConfig(newConfig);
-        if (field === 'recordPath') {
-            localStorage.setItem('scrcpy_record_path', value);
-        }
     };
 
     const handlePickFolder = async () => {

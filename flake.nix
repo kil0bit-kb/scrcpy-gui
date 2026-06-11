@@ -18,7 +18,7 @@
         pkgs = nixpkgs.legacyPackages.${system};
 
         pname = "scrcpy-gui";
-        version = "4.0.0";
+        version = "4.0.1";
 
         # Fetch the source code from GitHub
         src = pkgs.fetchFromGitHub {

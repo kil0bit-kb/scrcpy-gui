@@ -121,12 +121,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Initial check (once on mount) - Silent to avoid log clatter
-    checkScrcpy(config.scrcpyPath);
-    refreshDevices(config.scrcpyPath, true);
-  }, []);
-
-  useEffect(() => {
     if (scrcpyStatus.found && (!hasCheckedUpdate || config.scrcpyPath !== lastCheckedPath) && !isDownloading) {
       setHasCheckedUpdate(true);
       setLastCheckedPath(config.scrcpyPath);

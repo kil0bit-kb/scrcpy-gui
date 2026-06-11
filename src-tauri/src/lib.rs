@@ -71,13 +71,10 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::greet,
             commands::check_scrcpy,
             commands::get_devices,
             commands::adb_connect,
-            commands::get_mdns_devices,
             commands::adb_pair,
-            commands::adb_shell,
             commands::push_file,
             commands::install_apk,
             commands::kill_adb,

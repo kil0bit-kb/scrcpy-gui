@@ -73,7 +73,6 @@ export function useScrcpy() {
     });
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-    // Removed mdnsDevices state
     const [theme, setTheme] = useState("ultraviolet");
     const [colorMode, setColorModeState] = useState<'light' | 'dark' | 'system'>(() => {
         try {
@@ -126,10 +125,6 @@ export function useScrcpy() {
             try {
                 const parsed = JSON.parse(savedConfig);
                 setConfig(prev => ({ ...prev, ...parsed }));
-                // Initial check with saved path if it exists
-                if (parsed.scrcpyPath) {
-                    checkScrcpy(parsed.scrcpyPath);
-                }
             } catch (e) {
                 console.error("Failed to parse saved config", e);
             }
@@ -162,6 +157,13 @@ export function useScrcpy() {
 
         initStart();
     }, []);
+
+    // Initial check/refresh after config is loaded
+    useEffect(() => {
+        if (!isInitialized) return;
+        checkScrcpy(config.scrcpyPath);
+        refreshDevices(config.scrcpyPath, true);
+    }, [isInitialized]);
 
     // Persist changes
     useEffect(() => {
@@ -270,8 +272,8 @@ export function useScrcpy() {
         localStorage.removeItem('scrcpy_history');
     };
 
-    const refreshDevices = async (customPath?: string, silent: boolean = false) => {
-        if (isRefreshing) return;
+    const refreshDevices = async (customPath?: string, silent: boolean = false, force: boolean = false) => {
+        if (!force && isRefreshing) return;
         setIsRefreshing(true);
         try {
             const res: any = await invoke('get_devices', { customPath: customPath || config.scrcpyPath });
@@ -429,8 +431,7 @@ export function useScrcpy() {
                 // Allow ADB to settle and state to update
                 await new Promise(r => setTimeout(r, 1000));
 
-                setIsRefreshing(false); // Enable refreshDevices to run
-                await refreshDevices(customPath || config.scrcpyPath, true);
+                await refreshDevices(customPath || config.scrcpyPath, true, true);
             } else {
                 setLogs(prev => {
                     const msgs = [t('logs.connectionFailed', { message: String(res.message) })];
