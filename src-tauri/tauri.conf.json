@@ -16,22 +16,11 @@
         "title": "ScrcpyGUI",
         "width": 1200,
         "height": 890,
-        "visible": false,
+        "visible": true,
         "resizable": false,
         "center": true,
         "transparent": false,
         "decorations": true
-      },
-      {
-        "label": "splashscreen",
-        "url": "splashscreen.html",
-        "width": 500,
-        "height": 400,
-        "visible": false,
-        "decorations": false,
-        "transparent": true,
-        "center": true,
-        "alwaysOnTop": true
       }
     ],
     "security": {

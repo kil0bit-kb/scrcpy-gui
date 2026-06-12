@@ -26,7 +26,7 @@ export default function OnboardingModal({
     const isReady = binaryStatus.found;
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+        <div className="absolute inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-in fade-in duration-500"></div>
 

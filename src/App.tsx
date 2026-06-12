@@ -103,21 +103,19 @@ function App() {
   };
 
   useEffect(() => {
-    // Initial setup: fetch version and close splashscreen
+    // Initial setup: fetch version for the header
     const initApp = async () => {
       try {
+        const startedAt = performance.now();
         const v = await getVersion();
         setAppVersion(v);
-
-        const { invoke } = await import('@tauri-apps/api/core');
-        await invoke('close_splashscreen');
+        console.info(`[startup] version loaded in ${Math.round(performance.now() - startedAt)}ms`);
       } catch (e) {
         console.error("Initialization failed:", e);
       }
     };
 
-    const timer = setTimeout(initApp, 500);
-    return () => clearTimeout(timer);
+    void initApp();
   }, []);
 
   useEffect(() => {
@@ -288,7 +286,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen font-sans selection:bg-primary selection:text-on-primary overflow-hidden flex flex-col transition-opacity duration-1000 ease-in-out" style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-base)', opacity: 0, animation: 'fadeIn 0.8s ease-out forwards' }}>
+      <div className="relative min-h-screen font-sans selection:bg-primary selection:text-on-primary overflow-hidden flex flex-col transition-opacity duration-1000 ease-in-out" style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-base)', opacity: 0, animation: 'fadeIn 0.8s ease-out forwards' }}>
         <style>{`
           @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
