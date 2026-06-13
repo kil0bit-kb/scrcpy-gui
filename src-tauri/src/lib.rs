@@ -7,8 +7,71 @@ use tokio::process::Child;
 #[cfg(target_os = "linux")]
 use std::os::unix::process::CommandExt;
 
+#[cfg(desktop)]
+use tauri::{
+    image::Image,
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+};
+
+#[cfg(desktop)]
+const TRAY_ICON_BYTES: &[u8] = include_bytes!("../icons/icon.png");
+
 pub struct ScrcpyState {
     pub processes: Mutex<HashMap<String, Child>>,
+}
+
+#[cfg(desktop)]
+fn restore_main_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.set_skip_taskbar(false);
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
+#[cfg(desktop)]
+fn hide_main_window_to_tray(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.set_skip_taskbar(true);
+        let _ = window.hide();
+    }
+}
+
+#[cfg(desktop)]
+fn setup_tray(app: &mut tauri::App) -> tauri::Result<()> {
+    let open_item = MenuItem::with_id(app, "tray-open", "Open / Restore", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, "tray-exit", "Exit", true, None::<&str>)?;
+    let menu = Menu::with_items(app, &[&open_item, &quit_item])?;
+
+    let _tray = TrayIconBuilder::new()
+        .icon(Image::from_bytes(TRAY_ICON_BYTES)?)
+        .menu(&menu)
+        .show_menu_on_left_click(false)
+        .on_tray_icon_event(|tray, event| match event {
+            TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            }
+            | TrayIconEvent::DoubleClick {
+                button: MouseButton::Left,
+                ..
+            } => restore_main_window(tray.app_handle()),
+            _ => {}
+        })
+        .build(app)?;
+
+    app.on_menu_event(|app, event| {
+        if event.id() == "tray-open" {
+            restore_main_window(app);
+        } else if event.id() == "tray-exit" {
+            app.exit(0);
+        }
+    });
+
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -56,12 +119,23 @@ pub fn run() {
     }
 
     tauri::Builder::default()
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                hide_main_window_to_tray(window.app_handle());
+            }
+        })
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             app.manage(ScrcpyState {
                 processes: Mutex::new(HashMap::new()),
             });
+
+            #[cfg(desktop)]
+            {
+                setup_tray(app)?;
+            }
 
             Ok(())
         })

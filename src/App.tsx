@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
 import Sidebar from "./components/Sidebar";
@@ -78,6 +78,7 @@ function App() {
   const [appVersion, setAppVersion] = useState("3.3.0");
   const [lastCheckedPath, setLastCheckedPath] = useState<string | undefined>(undefined);
   const [hasCheckedUpdate, setHasCheckedUpdate] = useState(false);
+  const trayHiddenRef = useRef(false);
 
   const showAlert = (
     title: string,
@@ -180,6 +181,47 @@ function App() {
       unlisten.then(f => f());
     };
   }, [activeDevice]);
+
+  useEffect(() => {
+    const appWindow = getCurrentWindow();
+    let cancelled = false;
+
+    const syncTrayState = async () => {
+      try {
+        const minimized = await appWindow.isMinimized();
+        if (cancelled) {
+          return;
+        }
+
+        if (minimized && !trayHiddenRef.current) {
+          trayHiddenRef.current = true;
+          await appWindow.hide();
+          await appWindow.setSkipTaskbar(true);
+        } else if (!minimized && trayHiddenRef.current) {
+          trayHiddenRef.current = false;
+          await appWindow.setSkipTaskbar(false);
+        }
+      } catch (error) {
+        console.error("Failed to sync tray state:", error);
+      }
+    };
+
+    void syncTrayState();
+
+    const unlistenResized = appWindow.onResized(() => {
+      void syncTrayState();
+    });
+
+    const pollTimer = window.setInterval(() => {
+      void syncTrayState();
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(pollTimer);
+      void unlistenResized.then((unlisten) => unlisten());
+    };
+  }, []);
 
   useEffect(() => {
     if (activeDevice) {
