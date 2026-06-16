@@ -78,18 +78,17 @@ export default function ShortcutsPanel() {
         { label: t('shortcuts.off'), key: 'O', icon: MonitorOff },
     ];
 
+    const rotateKey = shortcuts.find(s => s.icon === RotateCw)?.key ?? 'R';
+
     return (
         <>
             <div className="glass p-3.5 rounded-2xl space-y-2 border border-zinc-800 bg-zinc-900/40 backdrop-blur-md">
                 <div className="flex items-center justify-between gap-2 border-b border-zinc-800/50 pb-1.5 mb-1">
                     <div className="flex items-center gap-2 min-w-0">
                         <Keyboard size={12} className="text-zinc-500 shrink-0" />
-                        <div className="min-w-0">
-                            <h2 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest truncate">{t('shortcuts.title')}</h2>
-                            <p className="text-[8px] font-bold uppercase tracking-[0.22em] text-zinc-600 mt-0.5">
-                                {displayModifier(modifier)} + {t('shortcuts.rotate')}
-                            </p>
-                        </div>
+                        <h2 className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-500 truncate min-w-0">
+                            {t('shortcuts.title')}: <span className="text-zinc-300">{displayModifier(modifier)} + {rotateKey}</span>
+                        </h2>
                     </div>
                     <button
                         type="button"
