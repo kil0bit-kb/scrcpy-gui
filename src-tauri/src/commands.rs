@@ -777,9 +777,11 @@ fn build_scrcpy_args(config: &ScrcpyConfig, video_dir_fallback: Option<String>, 
         let audio_enabled = config.audio_enabled.unwrap_or(true);
         if !audio_enabled { args.push("--no-audio".to_string()); }
         if audio_enabled {
-            if let Some(codec) = resolve_audio_codec_flag(config, audio_codec_override) {
-                args.push(format!("--audio-codec={}", codec));
-            }
+            // "auto" returns None from the resolver; default to aac for broadest compatibility.
+            let codec = resolve_audio_codec_flag(config, audio_codec_override).unwrap_or("aac");
+            args.push(format!("--audio-codec={}", codec));
+            args.push("--audio-bit-rate=128k".to_string());
+            args.push("--audio-buffer=50".to_string());
         }
         if let Some(aot) = config.always_on_top { if aot { args.push("--always-on-top".to_string()); } }
         if let Some(fs) = config.fullscreen { if fs { args.push("--fullscreen".to_string()); } }
