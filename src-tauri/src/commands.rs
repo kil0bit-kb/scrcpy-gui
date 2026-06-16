@@ -674,6 +674,41 @@ pub struct ScrcpyConfig {
     camera_zoom: Option<f32>,
     background_color: Option<String>,
     keep_active: Option<bool>,
+    shortcut_mod: Option<String>,
+}
+
+/// Maps a modifier name to the scrcpy flag value that accepts both left and right variants.
+/// Returns None if any component is unrecognised, so the caller skips the flag entirely.
+fn modifier_to_scrcpy_flag(modifier: &str) -> Option<String> {
+    // Each named key expands to "lkey,rkey" so either physical key works.
+    // For combos (joined with '+'), we emit every L/R combination separated by ','
+    // so any mix of left/right keys triggers the shortcut.
+    let keys: Option<Vec<Vec<&str>>> = modifier.split('+')
+        .map(|m| match m.trim() {
+            "Alt"  => Some(vec!["lalt",  "ralt"]),
+            "Ctrl" => Some(vec!["lctrl", "rctrl"]),
+            _      => None,
+        })
+        .collect();
+
+    keys.map(|groups| {
+        // Cartesian product of the groups to get all valid combinations.
+        let mut combos: Vec<String> = vec![String::new()];
+        for group in &groups {
+            let mut next = Vec::new();
+            for combo in &combos {
+                for key in group {
+                    if combo.is_empty() {
+                        next.push(key.to_string());
+                    } else {
+                        next.push(format!("{}+{}", combo, key));
+                    }
+                }
+            }
+            combos = next;
+        }
+        combos.join(",")
+    })
 }
 
 fn resolve_audio_codec_flag<'a>(config: &'a ScrcpyConfig, audio_codec_override: Option<&'a str>) -> Option<&'a str> {
@@ -859,8 +894,15 @@ fn build_scrcpy_args(config: &ScrcpyConfig, video_dir_fallback: Option<String>, 
                 args.push(format!("--background-color={}", trimmed));
             }
         }
+
+        if let Some(ref shortcut_mod) = config.shortcut_mod {
+            let trimmed = shortcut_mod.trim();
+            if let Some(flag) = modifier_to_scrcpy_flag(trimmed) {
+                args.push(format!("--shortcut-mod={}", flag));
+            }
+        }
     }
-    
+
     args
 }
 
@@ -1171,6 +1213,7 @@ mod tests {
             camera_zoom: None,
             background_color: None,
             keep_active: None,
+            shortcut_mod: None,
         }
     }
 
@@ -1396,7 +1439,7 @@ pub async fn download_scrcpy(window: Window) -> Result<(), String> {
             downloaded += chunk.len() as u64;
             if total_size > 0 {
                 let percent = (downloaded * 100) / total_size;
-                let _ = window.emit("download-progress", json!({ "percent": percent }));
+                let _ = window.emit("scrcpy-status", json!({ "type": "download-progress", "percent": percent }));
             }
         }
     }

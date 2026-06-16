@@ -229,12 +229,16 @@ function App() {
     }
   }, [activeDevice]);
 
+  const VALID_SHORTCUT_MODIFIERS = ['Alt', 'Ctrl', 'Ctrl+Alt'];
+
   const handleStart = async () => {
     if (!activeDevice) {
       showAlert(t('alerts.noDeviceSelectedTitle'), t('alerts.noDeviceSelectedMessage'), "warning");
       return;
     }
-    await runScrcpy(config);
+    const stored = localStorage.getItem('scrcpy_shortcut_modifier') ?? 'Alt';
+    const shortcutMod = VALID_SHORTCUT_MODIFIERS.includes(stored) ? stored : 'Alt';
+    await runScrcpy({ ...config, shortcutMod });
   };
 
   const handleStop = async () => {

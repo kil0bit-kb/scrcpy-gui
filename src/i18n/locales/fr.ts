@@ -199,7 +199,14 @@ export const fr: Translations = {
         keepActiveTooltip: 'Simule une activité utilisateur pour empêcher l\'écran de se mettre en veille (scrcpy v4+).'
     },
     shortcuts: {
-        title: 'Raccourcis (Alt +)',
+        title: 'Raccourcis',
+        settings: 'Paramètres des raccourcis',
+        description: 'Choisissez un modificateur sans conflit pour ce groupe de raccourcis.',
+        modifier: 'Modificateur',
+        preview: 'Aperçu',
+        reset: 'Réinitialiser',
+        captureCustom: 'Appuyer sur une combinaison...',
+        captureHint: 'Maintenez les modificateurs, puis appuyez sur une touche',
         full: 'Plein',
         home: 'Accueil',
         back: 'Retour',

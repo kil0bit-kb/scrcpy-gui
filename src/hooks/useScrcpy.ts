@@ -50,6 +50,7 @@ export interface ScrcpyConfig {
     cameraZoom?: number;
     backgroundColor?: string;
     keepActive?: boolean;
+    shortcutMod?: string;
 }
 
 export function useScrcpy() {

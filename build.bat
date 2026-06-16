@@ -67,6 +67,7 @@ if !ERRORLEVEL! neq 0 (
 REM ── 5. Locate installer artifacts ────────────────────────────────────────────
 set "NSIS_DIR=src-tauri\target\release\bundle\nsis"
 set "MSI_DIR=src-tauri\target\release\bundle\msi"
+set "INSTALLER_PATH="
 set "FOUND=0"
 echo.
 echo Build succeeded. Checking for installer artifacts...
@@ -74,13 +75,19 @@ echo Build succeeded. Checking for installer artifacts...
 if exist "%NSIS_DIR%\*.exe" (
     echo.
     echo   [NSIS installer]
-    for %%F in ("%NSIS_DIR%\*.exe") do echo     %%~nxF  --^>  %NSIS_DIR%\%%~nxF
+    for %%F in ("%NSIS_DIR%\*.exe") do (
+        echo     %%~nxF  --^>  %%~fF
+        set "INSTALLER_PATH=%%~fF"
+    )
     set "FOUND=1"
 )
 if exist "%MSI_DIR%\*.msi" (
     echo.
     echo   [MSI installer]
-    for %%F in ("%MSI_DIR%\*.msi") do echo     %%~nxF  --^>  %MSI_DIR%\%%~nxF
+    for %%F in ("%MSI_DIR%\*.msi") do echo     %%~nxF  --^>  %%~fF
+    if "!INSTALLER_PATH!"=="" (
+        for %%F in ("%MSI_DIR%\*.msi") do set "INSTALLER_PATH=%%~fF"
+    )
     set "FOUND=1"
 )
 if "!FOUND!"=="0" (
@@ -89,6 +96,14 @@ if "!FOUND!"=="0" (
     echo   - WiX Toolset ^(free^):  https://wixtoolset.org/
     echo.
     echo   Raw portable binary: src-tauri\target\release\scrcpy-gui-v4.exe
+)
+
+REM ── 6. Launch installer ────────────────────────────────────────────────────────
+if defined INSTALLER_PATH (
+    echo.
+    echo Launching installer: !INSTALLER_PATH!
+    start "" "!INSTALLER_PATH!"
+    echo Installer window opened.
 )
 
 echo.

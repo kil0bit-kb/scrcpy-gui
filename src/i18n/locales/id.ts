@@ -203,7 +203,14 @@ export const id: Translations = {
         keepActiveTooltip: 'Mirorring dan HP tidak otomatis mati (scrcpy v4+)'
     },
     shortcuts: {
-        title: 'Pintasan (Alt +)',
+        title: 'Pintasan',
+        settings: 'Pengaturan Pintasan',
+        description: 'Pilih tombol modifier yang tidak bentrok untuk grup pintasan ini.',
+        modifier: 'Modifier',
+        preview: 'Pratinjau',
+        reset: 'Kembalikan Default',
+        captureCustom: 'Tekan kombinasi tombol...',
+        captureHint: 'Tahan modifier lalu tekan tombol apapun',
         full: 'Penuh',
         home: 'Beranda',
         back: 'Kembali',
