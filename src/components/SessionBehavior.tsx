@@ -1,12 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
+import { 
+  Coffee, 
+  DesktopAccessDisabled, 
+  VolumeUp, 
+  Layers, 
+  Fullscreen, 
+  CropSquare, 
+  RadioButtonUnchecked, 
+  Folder,
+  FolderOpen
+} from '@nine-thirty-five/material-symbols-react/rounded/700/filled';
+import { RefreshCcw, Zap, SlidersHorizontal } from 'lucide-react';
 import { ScrcpyConfig } from '../hooks/useScrcpy';
 import Tooltip from './Tooltip';
-import { Coffee, MonitorOff, Volume2, Layers, Maximize, Square, Circle, Folder, Settings2, ChevronDown, ActivitySquare } from 'lucide-react';
+import CustomDropdown from './CustomDropdown';
 import { useI18n } from '../i18n';
 
-const AUDIO_CODEC_VALUES = ['auto', 'opus', 'aac', 'flac', 'raw'] as const;
-type AudioCodec = typeof AUDIO_CODEC_VALUES[number];
+function formatMiddleTruncatePath(path: string, maxLength: number = 28): string {
+    if (!path || path.length <= maxLength) return path;
+    const startLen = Math.ceil((maxLength - 3) / 2);
+    const endLen = Math.floor((maxLength - 3) / 2);
+    return `${path.slice(0, startLen)}...${path.slice(-endLen)}`;
+}
+
+type AudioCodec = 'auto' | 'opus' | 'aac' | 'flac' | 'raw';
+const AUDIO_CODEC_VALUES: AudioCodec[] = ['auto', 'opus', 'aac', 'flac', 'raw'];
 
 interface SessionBehaviorProps {
     config: ScrcpyConfig;
@@ -40,61 +58,30 @@ export default function SessionBehavior({ config, setConfig }: SessionBehaviorPr
     };
 
     const AudioCodecPicker = ({ value, onChange, disabled }: { value: AudioCodec, onChange: (v: AudioCodec) => void, disabled: boolean }) => {
-        const [isOpen, setIsOpen] = useState(false);
-        const ref = useRef<HTMLDivElement>(null);
-
-        useEffect(() => {
-            const onDoc = (e: MouseEvent) => {
-                if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
-            };
-            if (isOpen) document.addEventListener('mousedown', onDoc);
-            return () => document.removeEventListener('mousedown', onDoc);
-        }, [isOpen]);
-
-        useEffect(() => {
-            if (disabled) setIsOpen(false);
-        }, [disabled]);
-
-        const labelFor = (v: AudioCodec) =>
-            v === 'auto' ? t('sessionBehavior.audioCodecAuto') :
-                v === 'opus' ? t('sessionBehavior.audioCodecOpus') :
-                    v === 'aac' ? t('sessionBehavior.audioCodecAac') :
-                        v === 'flac' ? t('sessionBehavior.audioCodecFlac') :
-                            t('sessionBehavior.audioCodecRaw');
+        const codecOptions = AUDIO_CODEC_VALUES.map((opt) => ({
+            value: opt,
+            label: opt === 'auto' ? t('sessionBehavior.audioCodecAuto') :
+                   opt === 'opus' ? t('sessionBehavior.audioCodecOpus') :
+                   opt === 'aac' ? t('sessionBehavior.audioCodecAac') :
+                   opt === 'flac' ? t('sessionBehavior.audioCodecFlac') :
+                   t('sessionBehavior.audioCodecRaw')
+        }));
 
         return (
-            <div
-                ref={ref}
-                onClick={(e) => e.stopPropagation()}
-                className={`mt-0.5 pl-7 pr-2 pb-1 transition-opacity ${disabled ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}
-            >
-                <div className="flex items-center gap-1.5">
-                    <span className="text-[8px] font-black uppercase text-zinc-500 tracking-widest">{t('sessionBehavior.audioCodec')}</span>
-                    <Tooltip text={t('sessionBehavior.audioCodecTooltip')} />
-                    <div className="relative ml-auto">
-                        <button
-                            type="button"
-                            onClick={() => !disabled && setIsOpen(o => !o)}
-                            disabled={disabled}
-                            className="flex items-center gap-1 bg-zinc-950/60 border border-zinc-800 hover:border-primary/60 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-300 hover:text-primary transition-colors"
-                        >
-                            <span>{labelFor(value)}</span>
-                            <ChevronDown size={10} className={`transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        {isOpen && (
-                            <div className="absolute right-0 top-full mt-1 z-50 min-w-[88px] bg-zinc-950 border border-zinc-800 rounded-md shadow-2xl py-1 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-100">
-                                {AUDIO_CODEC_VALUES.map((opt) => (
-                                    <div
-                                        key={opt}
-                                        onClick={() => { onChange(opt); setIsOpen(false); }}
-                                        className={`px-2 py-1 text-[9px] uppercase tracking-wider font-bold cursor-pointer transition-colors ${value === opt ? 'bg-primary/20 text-primary' : 'text-zinc-400 hover:bg-primary hover:text-on-primary'}`}
-                                    >
-                                        {labelFor(opt)}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+            <div className={`my-1 pl-7 pr-2.5 py-1.5 transition-opacity ${disabled ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[10px] font-bold text-[var(--text-base)] truncate">{t('sessionBehavior.audioCodec')}</span>
+                        <Tooltip text={t('sessionBehavior.audioCodecTooltip')} />
                     </div>
+                    <CustomDropdown
+                        value={value}
+                        onChange={(val) => onChange(val as AudioCodec)}
+                        options={codecOptions}
+                        compact={true}
+                        disabled={disabled}
+                        className="w-28 max-w-full"
+                    />
                 </div>
             </div>
         );
@@ -103,33 +90,25 @@ export default function SessionBehavior({ config, setConfig }: SessionBehaviorPr
     const Toggle = ({ checked, onChange, icon: Icon, label, tooltip, danger = false }: { checked: boolean, onChange: (v: boolean) => void, icon: any, label: string, tooltip: string, danger?: boolean }) => (
         <div
             onClick={() => onChange(!checked)}
-            className="flex items-center justify-between gap-3 group cursor-pointer py-1 bg-zinc-950/30 rounded-lg px-2 border border-transparent hover:border-zinc-800 transition-all"
+            className="flex items-center justify-between gap-3 group cursor-pointer py-1.5 px-2.5 bg-(--md-sys-color-surface-container) rounded-xl hover:bg-(--md-sys-color-surface-container-high) transition-all duration-75 ease-out"
         >
             <div className="flex items-center gap-2 min-w-0">
-                <div className={`p-1 rounded-md shrink-0 transition-colors ${checked ? (danger ? 'bg-red-500/10 text-red-500' : 'bg-primary/10 text-primary') : 'bg-zinc-800/50 text-zinc-500 group-hover:text-zinc-300'}`}>
-                    <Icon size={12} />
-                </div>
-                <div className="flex items-center gap-1.5 min-w-0">
-                    <span className={`text-[10px] font-bold uppercase tracking-tight truncate transition-colors ${checked ? (danger ? 'text-red-400' : 'text-zinc-200') : 'text-zinc-500 group-hover:text-zinc-400'}`}>
-                        {label}
-                    </span>
-                    <div className="shrink-0">
-                        <Tooltip text={tooltip} />
-                    </div>
-                </div>
+                <Icon size={14} className={`shrink-0 ${checked ? (danger ? 'text-red-400' : 'text-primary') : 'text-(--text-muted) group-hover:text-(--text-base)'}`} />
+                <span className="text-[10px] font-bold text-(--text-base) truncate">{label}</span>
+                <Tooltip text={tooltip} />
             </div>
-            <div className={`w-6 h-3.5 shrink-0 rounded-full p-0.5 transition-all duration-300 ${checked ? (danger ? 'bg-red-600' : 'bg-primary') : 'bg-zinc-800'}`}>
-                <div className={`w-2.5 h-2.5 rounded-full shadow-sm transition-all duration-300 ${checked ? (danger ? 'bg-white translate-x-2.5' : 'bg-[var(--text-on-primary)] translate-x-2.5') : 'bg-white translate-x-0'}`} />
+            <div className={`w-8 h-4.5 rounded-full transition-colors duration-150 relative shrink-0 ui-switch-track ${checked ? (danger ? 'bg-red-500 is-danger' : 'bg-primary is-active') : 'bg-[var(--md-sys-color-surface-container-highest)]'}`}>
+                <div className={`ui-switch-thumb ${checked ? 'bg-on-primary translate-x-3.5 shadow-sm' : 'bg-(--text-muted) translate-x-0'}`} />
             </div>
         </div>
     );
 
     return (
         <div className="space-y-4">
-            <div className="glass p-3.5 rounded-2xl space-y-2 border border-zinc-800 bg-zinc-900/40 backdrop-blur-md">
-                <div className="flex items-center gap-2 border-b border-zinc-800/50 pb-1.5 mb-1">
-                    <Settings2 size={12} className="text-zinc-500" />
-                    <h2 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">{t('sessionBehavior.title')}</h2>
+            <div className="glass p-3.5 rounded-2xl space-y-2 bg-[var(--md-sys-color-surface-container-high)] text-[var(--text-base)] backdrop-blur-md border border-[var(--md-sys-color-surface-container-highest)]">
+                <div className="flex items-center gap-2 border-b border-[var(--md-sys-color-surface-container-highest)] pb-1.5 mb-1">
+                    <SlidersHorizontal size={18} className="text-primary shrink-0" />
+                    <h2 className="text-card-title">{t('sessionBehavior.title')}</h2>
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -144,14 +123,14 @@ export default function SessionBehavior({ config, setConfig }: SessionBehaviorPr
                     <Toggle
                         checked={config.keepActive || false}
                         onChange={(v) => handleChange('keepActive', v)}
-                        icon={ActivitySquare}
+                        icon={Zap}
                         label={t('sessionBehavior.keepActive')}
                         tooltip={t('sessionBehavior.keepActiveTooltip')}
                     />
                     <Toggle
                         checked={config.turnOff || false}
                         onChange={(v) => handleChange('turnOff', v)}
-                        icon={MonitorOff}
+                        icon={DesktopAccessDisabled}
                         label={t('sessionBehavior.screenOff')}
                         tooltip={t('sessionBehavior.screenOffTooltip')}
                     />
@@ -159,7 +138,7 @@ export default function SessionBehavior({ config, setConfig }: SessionBehaviorPr
                         <Toggle
                             checked={config.audioEnabled || false}
                             onChange={(v) => handleChange('audioEnabled', v)}
-                            icon={Volume2}
+                            icon={VolumeUp}
                             label={t('sessionBehavior.forwardAudio')}
                             tooltip={t('sessionBehavior.forwardAudioTooltip')}
                         />
@@ -181,44 +160,57 @@ export default function SessionBehavior({ config, setConfig }: SessionBehaviorPr
                     <Toggle
                         checked={config.fullscreen || false}
                         onChange={(v) => handleChange('fullscreen', v)}
-                        icon={Maximize}
+                        icon={Fullscreen}
                         label={t('sessionBehavior.fullScreen')}
                         tooltip={t('sessionBehavior.fullScreenTooltip')}
                     />
                     <Toggle
                         checked={config.borderless || false}
                         onChange={(v) => handleChange('borderless', v)}
-                        icon={Square}
+                        icon={CropSquare}
                         label={t('sessionBehavior.borderless')}
                         tooltip={t('sessionBehavior.borderlessTooltip')}
                     />
                     <Toggle
                         checked={config.record || false}
                         onChange={(v) => handleChange('record', v)}
-                        icon={Circle}
+                        icon={RadioButtonUnchecked}
                         label={t('sessionBehavior.recordFeed')}
                         tooltip={t('sessionBehavior.recordFeedTooltip')}
                         danger={true}
                     />
                 </div>
 
-                <div className="pt-2 border-t border-zinc-800/50 space-y-2">
-                    <div className="flex items-center justify-between">
+                <div className="pt-2 border-t border-[var(--md-sys-color-surface-container-highest)] space-y-1.5 font-sans">
+                    <div className="flex items-center justify-between mb-0.5 px-0.5">
                         <div className="flex items-center gap-1.5">
-                            <Folder size={12} className="text-zinc-500" />
-                            <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-tight">{t('sessionBehavior.recordPath')}</span>
+                            <Folder size={14} className="text-primary shrink-0" />
+                            <span className="text-[10px] font-bold text-[var(--text-base)] uppercase tracking-tight">{t('sessionBehavior.recordPath')}</span>
                         </div>
-                        <button
-                            onClick={handlePickFolder}
-                            className="text-[8px] font-black uppercase text-primary hover:text-white transition-colors"
-                        >
-                            {t('sessionBehavior.change')}
-                        </button>
                     </div>
-                    <div className="bg-black/40 border border-zinc-800/50 rounded-lg px-2.5 py-1.5">
-                        <p className="text-[9px] text-zinc-500 font-mono truncate leading-none">
-                            {config.recordPath || t('sessionBehavior.defaultVideosFolder')}
-                        </p>
+                    <div className="flex items-center justify-between gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] p-1 rounded-2xl">
+                        <button
+                            type="button"
+                            onClick={handlePickFolder}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[10px] font-bold text-[var(--text-base)] hover:bg-(--md-sys-color-surface-container) transition-all cursor-pointer overflow-hidden min-w-0"
+                            title={config.recordPath || t('sessionBehavior.defaultVideosFolder')}
+                        >
+                            <FolderOpen size={14} className="text-primary shrink-0" />
+                            <span className="truncate text-center w-full font-sans text-[10px]">
+                                {formatMiddleTruncatePath(config.recordPath || t('sessionBehavior.defaultVideosFolder'))}
+                            </span>
+                        </button>
+                        {config.recordPath && (
+                            <Tooltip text="Reset Record Path">
+                                <button
+                                    type="button"
+                                    onClick={() => handleChange('recordPath', '')}
+                                    className="p-1.5 rounded-xl text-[var(--text-muted)] hover:text-white bg-(--md-sys-color-surface-container) hover:bg-red-600 border border-transparent hover:border-red-500 transition-all cursor-pointer shrink-0 shadow-sm flex items-center justify-center group/reset"
+                                >
+                                    <RefreshCcw size={14} className="group-hover/reset:rotate-180 transition-transform duration-300" />
+                                </button>
+                            </Tooltip>
+                        )}
                     </div>
                 </div>
             </div>
