@@ -1,101 +1,255 @@
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,slnt,wdth,wght,GRAD,ROND@6..144,-10..0,25..151,1..1000,0..100,0..100&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght,MONO@0,300..800,1;1,300..800,1&display=swap');
+
 @import "tailwindcss";
 
 @theme {
   --color-primary: var(--primary);
   --color-on-primary: var(--text-on-primary);
-  --font-sans: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-sans: "Google Sans Flex", sans-serif;
+  --font-mono: "Google Sans Code", monospace;
 }
 
-/* ── Base variables (dark defaults) ─────────────────── */
+/* ── Dynamic Font Scaling Mappings for Tailwind Pixel Utilities ── */
+.text-\[7px\], .text-\\[7px\\] { font-size: 0.4375rem !important; }
+.text-\[8px\], .text-\\[8px\\] { font-size: 0.5625rem !important; }
+.text-\[9px\], .text-\\[9px\\] { font-size: 0.6875rem !important; }
+.text-\[10px\], .text-\\[10px\\] { font-size: 0.75rem !important; }
+.text-\[11px\], .text-\\[11px\\] { font-size: 0.8125rem !important; }
+.text-\[12px\], .text-\\[12px\\] { font-size: 0.875rem !important; }
+.text-\[13px\], .text-\\[13px\\] { font-size: 0.9375rem !important; }
+.text-\[14px\], .text-\\[14px\\] { font-size: 1rem !important; }
+.text-\[15px\], .text-\\[15px\\] { font-size: 1.0625rem !important; }
+.text-\[16px\], .text-\\[16px\\] { font-size: 1.125rem !important; }
+.text-\[18px\], .text-\\[18px\\] { font-size: 1.25rem !important; }
+.text-\[20px\], .text-\\[20px\\] { font-size: 1.375rem !important; }
+.text-\[22px\], .text-\\[22px\\] { font-size: 1.5rem !important; }
+.text-\[24px\], .text-\\[24px\\] { font-size: 1.625rem !important; }
+
+/* ── Master Typography Design System ────────────────────────────── */
 :root {
-  --primary: #8b5cf6;
-  --text-on-primary: #ffffff;
-  --bg-base: #010101;
+  --font-size-2xs: 0.625rem;  /* 10px - Micro badges, tags, kbd shortcuts */
+  --font-size-xs:  0.75rem;   /* 12px - Captions, sub-labels, hints */
+  --font-size-sm:  0.875rem;  /* 14px - Body text, dropdown options, form inputs */
+  --font-size-base: 1rem;     /* 16px - Primary body, standard buttons */
+  --font-size-lg:  1.125rem;  /* 18px - Section headers, card titles */
+  --font-size-xl:  1.375rem;  /* 22px - Modal titles, section hero headers */
+  --font-size-2xl: 1.75rem;   /* 28px - App Title Display */
+}
+
+.text-display-brand,
+.text-display-brand * {
+  font-family: "Google Sans Flex", sans-serif !important;
+  font-size: var(--font-size-2xl) !important;
+  font-weight: 900 !important;
+  font-variation-settings: "ROND" 0, "wdth" 151 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  font-style: italic !important;
+  line-height: 1.1 !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.text-card-title,
+.text-section-header,
+.text-display-brand {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.text-card-title {
+  font-family: "Google Sans Flex", sans-serif;
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  font-variation-settings: "ROND" 60, "wdth" 120;
+  letter-spacing: 0.02em;
+  color: var(--text-base);
+  line-height: 1.2;
+}
+
+.text-section-header {
+  font-family: "Google Sans Flex", sans-serif;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  font-variation-settings: "ROND" 80, "wdth" 110;
+  letter-spacing: 0.01em;
+  color: var(--text-base);
+}
+
+.text-body-main {
+  font-family: "Google Sans Flex", sans-serif;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-variation-settings: "ROND" 100, "wdth" 100;
+  color: var(--text-base);
+  line-height: 1.4;
+}
+
+.text-body-subtext {
+  font-family: "Google Sans Flex", sans-serif;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  font-variation-settings: "ROND" 100, "wdth" 100;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.text-badge-micro {
+  font-family: "Google Sans Flex", sans-serif;
+  font-size: var(--font-size-2xs);
+  font-weight: 800;
+  font-variation-settings: "ROND" 100, "wdth" 100;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── Material Design 3 (MD3) Dynamic Colors & Global Border Removal ── */
+*, ::before, ::after {
+  font-family: "Google Sans Flex", sans-serif;
+  font-variation-settings: "ROND" 100;
+  border-style: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  letter-spacing: normal !important;
+  box-shadow: none !important;
+}
+
+@keyframes dropdownPop {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes tooltipPop {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px) scale(0.90);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* ── High-Contrast Switch Track & Centered Thumb System ── */
+.ui-switch-track {
+  width: 34px !important;
+  height: 20px !important;
+  padding: 0 2px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  border: 1.5px solid var(--text-muted) !important;
+  box-sizing: border-box !important;
+  border-radius: 9999px !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.ui-switch-thumb {
+  width: 13px !important;
+  height: 13px !important;
+  border-radius: 9999px !important;
+  box-sizing: border-box !important;
+  margin-top: auto !important;
+  margin-bottom: auto !important;
+  transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease-out !important;
+}
+
+.ui-switch-track.is-active {
+  border-color: var(--primary) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.ui-switch-track.is-danger {
+  border-color: #ef4444 !important;
+}
+
+.animate-tooltip-pop {
+  animation: tooltipPop 140ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: transform, opacity;
+}
+
+/* Active Click Pill Corner Morph Animation */
+button, a, .btn-pill-morph {
+  transition: border-radius 160ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease-out !important;
+}
+
+button.rounded-full:active,
+a.rounded-full:active,
+.rounded-full:active {
+  border-radius: 12px !important;
+}
+
+button.rounded-2xl:active,
+.rounded-2xl:active {
+  border-radius: 14px !important;
+}
+
+.animate-dropdown {
+  animation: dropdownPop 75ms cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  transform-origin: top center;
+  will-change: transform, opacity;
+}
+
+html, body, input, button, select, textarea {
+  font-family: "Google Sans Flex", sans-serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "ROND" 100;
+  letter-spacing: normal !important;
+}
+
+code, pre, .font-mono, input.font-mono, textarea.font-mono {
+  font-family: "Google Sans Code", monospace;
+  font-optical-sizing: auto;
+  font-variation-settings: "MONO" 1;
+}
+
+.font-sans {
+  font-family: "Google Sans Flex", sans-serif !important;
+  font-variation-settings: "ROND" 100;
+}
+
+.font-shell-console,
+.font-shell-console * {
+  font-family: "Google Sans Code", monospace !important;
+  font-variation-settings: "MONO" 1 !important;
+}
+
+/* ── Base MD3 System Color Tokens ─────────────────── */
+:root {
+  --md-sys-color-primary: #8b5cf6;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #4f378b;
+  --md-sys-color-on-primary-container: #eaddff;
+  --md-sys-color-surface: #0b0812;
+  --md-sys-color-surface-container: #14111c;
+  --md-sys-color-surface-container-high: #1e1a27;
+  --md-sys-color-surface-container-highest: #292433;
+
+  --primary: var(--md-sys-color-primary);
+  --text-on-primary: var(--md-sys-color-on-primary);
+  --bg-base: var(--md-sys-color-surface);
 
   /* Semantic tokens */
   --text-base: #e4e4e7;
   --text-muted: #a1a1aa;
   --text-subtle: #71717a;
-  --bg-surface: #18181b;
-  --bg-elevated: #09090b;
-  --bg-input: #27272a;
-  --border-base: #27272a;
-  --border-subtle: #3f3f46;
-  --glass-bg: rgba(24, 24, 27, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.05);
-  --scrollbar-track: #09090b;
+  --bg-surface: var(--md-sys-color-surface-container);
+  --bg-elevated: var(--md-sys-color-surface-container-high);
+  --bg-input: var(--md-sys-color-surface-container-highest);
+  --border-base: transparent;
+  --border-subtle: transparent;
+  --glass-bg: var(--md-sys-color-surface-container);
+  --glass-border: transparent;
+  --scrollbar-track: transparent;
   --scrollbar-thumb: #27272a;
   --scrollbar-thumb-hover: #3f3f46;
-  --swatch-border: rgba(255, 255, 255, 0.15);
-}
-
-/* ── Color themes (dark) ────────────────────────────── */
-[data-theme='ultraviolet'] {
-  --primary: #8b5cf6;
-  --text-on-primary: #ffffff;
-  --bg-base: #06040a;
-}
-
-[data-theme='astro'] {
-  --primary: #3b82f6;
-  --text-on-primary: #ffffff;
-  --bg-base: #04050a;
-}
-
-[data-theme='carbon'] {
-  --primary: #ffffff;
-  --text-on-primary: #09090b;
-  --bg-base: #0a0a0a;
-}
-
-[data-theme='emerald'] {
-  --primary: #10b981;
-  --text-on-primary: #ffffff;
-  --bg-base: #040a08;
-}
-
-[data-theme='bloodmoon'] {
-  --primary: #ef4444;
-  --text-on-primary: #ffffff;
-  --bg-base: #0a0404;
-}
-
-/* ── Light mode tokens (warm stone-based palette) ─── */
-[data-mode='light'] {
-  --text-base: #1c1917;        /* stone-900 - warm near-black */
-  --text-muted: #57534e;       /* stone-600 - readable medium */
-  --text-subtle: #78716c;      /* stone-500 */
-  --bg-surface: #fafaf9;       /* stone-50 - warm white */
-  --bg-elevated: #f5f5f4;      /* stone-100 */
-  --bg-input: #e7e5e4;         /* stone-200 */
-  --border-base: #d6d3d1;      /* stone-300 – visible but not harsh */
-  --border-subtle: #e7e5e4;    /* stone-200 */
-  --glass-bg: rgba(250, 250, 249, 0.78);
-  --glass-border: rgba(28, 25, 23, 0.12);
-  --scrollbar-track: transparent;
-  --scrollbar-thumb: #d6d3d1;
-  --scrollbar-thumb-hover: #a8a29e;
-  --swatch-border: rgba(28, 25, 23, 0.25);
-  color-scheme: light;
-}
-
-/* Per-theme light bg-base & primary adjustments */
-[data-theme='ultraviolet'][data-mode='light'] {
-  --bg-base: #f5f1ff;
-}
-[data-theme='astro'][data-mode='light'] {
-  --bg-base: #eef4ff;
-}
-[data-theme='carbon'][data-mode='light'] {
-  --bg-base: #f5f5f4;
-  --primary: #1c1917;          /* stone-900, warmer than pure black */
-  --text-on-primary: #fafaf9;
-}
-[data-theme='emerald'][data-mode='light'] {
-  --bg-base: #ecfdf5;
-}
-[data-theme='bloodmoon'][data-mode='light'] {
-  --bg-base: #fff1f2;
+  --swatch-border: transparent;
 }
 
 /* ── Base styles ────────────────────────────────────── */

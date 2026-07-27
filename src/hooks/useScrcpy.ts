@@ -92,7 +92,7 @@ export function useScrcpy() {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
     const [mdnsDevices, setMdnsDevices] = useState<MdnsDevice[]>([]);
-    const [theme, setTheme] = useState("ultraviolet");
+    const [theme, setTheme] = useState("monochrome");
     const [colorMode, setColorModeState] = useState<'light' | 'dark' | 'system'>(() => {
         try {
             return (localStorage.getItem('scrcpy_color_mode') as 'light' | 'dark' | 'system') || 'system';
