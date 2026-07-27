@@ -37,6 +37,12 @@ export const zhTW: Translations = {
             system: '系統'
         },
         languageLabel: '語言',
+        usbDebuggingTitle: '開啟 USB 調試',
+        usbDebuggingDesc: '在 Android 裝置上，轉至「設定」>「開發者選項」並開啟「USB 調試」。',
+        connectDeviceTitle: '連接您的裝置',
+        connectDeviceDesc: '透過 USB 線纜插入，或使用無線調試透過 Wi-Fi 配對。',
+        otgModeTitle: 'HID / OTG 模式',
+        otgModeDesc: '開啟鍵盤或滑鼠轉發，無需安裝 scrcpy 伺服端應用即可直接硬體控制。',
         tagline: '輕鬆鏡像與控制 Android 裝置',
         scrcpyEngine: 'Scrcpy 引擎',
         scrcpyReady: 'Scrcpy 已就緒',

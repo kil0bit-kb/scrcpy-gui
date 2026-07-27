@@ -37,6 +37,12 @@ export const fr: Translations = {
             system: 'Système'
         },
         languageLabel: 'Langue',
+        usbDebuggingTitle: 'Activer le débogage USB',
+        usbDebuggingDesc: 'Sur votre appareil Android, accédez à Paramètres > Options pour les développeurs et activez le débogage USB.',
+        connectDeviceTitle: 'Connecter votre appareil',
+        connectDeviceDesc: 'Branchez via un câble USB ou utilisez le débogage sans fil pour vous associer via Wi-Fi.',
+        otgModeTitle: 'Mode HID / OTG',
+        otgModeDesc: 'Activez la redirection du clavier ou de la souris pour un contrôle matériel direct sans installer l’application scrcpy.',
         tagline: 'Miroir & Contrôle Android // Appareils Facilement',
         scrcpyEngine: 'Moteur Scrcpy',
         scrcpyReady: 'Scrcpy Prêt',
@@ -253,7 +259,7 @@ export const fr: Translations = {
     footer: {
         aboutScrcpyGui: 'À Propos de Scrcpy GUI',
         github: 'Github',
-        youtube: 'Youtube',
+        youtube: 'YouTube',
         website: 'Site Web',
         support: 'Soutien',
         core: 'Cœur',

@@ -37,6 +37,12 @@ languages: {
             system: 'Sistem'
         },
         languageLabel: 'Bahasa',
+        usbDebuggingTitle: 'Aktifkan Debugging USB',
+        usbDebuggingDesc: 'Di perangkat Android Anda, buka Pengaturan > Opsi Pengembang lalu aktifkan Debugging USB.',
+        connectDeviceTitle: 'Hubungkan Perangkat Anda',
+        connectDeviceDesc: 'Sambungkan melalui kabel USB atau gunakan Debugging Nirkabel untuk menyandingkan via Wi-Fi.',
+        otgModeTitle: 'Mode HID / OTG',
+        otgModeDesc: 'Aktifkan penerusan Keyboard atau Mouse untuk kontrol perangkat keras langsung tanpa memasang aplikasi server scrcpy.',
         tagline: 'Mirror & Kontrol HP Android // dengan Mudah',
         scrcpyEngine: 'Sistem Scrcpy',
         scrcpyReady: 'Scrcpy Siap',
@@ -253,7 +259,7 @@ languages: {
     footer: {
         aboutScrcpyGui: 'Tentang Scrcpy GUI',
         github: 'Github',
-        youtube: 'Youtube',
+        youtube: 'YouTube',
         website: 'Situs Web',
         support: 'Dukungan',
         core: 'Inti',
