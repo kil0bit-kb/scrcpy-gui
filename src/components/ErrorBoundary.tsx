@@ -80,42 +80,54 @@ export default class ErrorBoundary extends React.Component<Props, State> {
         if (this.state.hasError) {
             const t = this.translate;
             return (
-                <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6 text-zinc-200 font-sans">
-                    <div className="max-w-md w-full glass border border-red-500/20 bg-red-500/5 p-8 rounded-3xl space-y-6 text-center shadow-2xl backdrop-blur-xl">
-                        <div className="inline-flex p-4 bg-red-500/10 rounded-2xl text-red-500 mb-2">
-                            <AlertCircle size={40} />
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 sm:p-6 select-none animate-in fade-in duration-150">
+                    {/* Mild black backdrop without blur */}
+                    <div className="absolute inset-0 bg-black/40" />
+
+                    {/* Popup Card */}
+                    <div className="relative w-full max-w-sm bg-[var(--md-sys-color-surface-container-high)] text-[var(--text-base)] border border-[var(--md-sys-color-surface-container-highest)] rounded-3xl shadow-2xl overflow-hidden flex flex-col p-6 font-sans animate-in zoom-in-95 duration-150">
+                        <div className="flex flex-col items-start text-left space-y-3 font-sans">
+                            {/* Top Left Icon (No BG) */}
+                            <div className="text-red-500 shrink-0">
+                                <AlertCircle size={28} />
+                            </div>
+
+                            {/* Title & Subtitle */}
+                            <div className="space-y-1">
+                                <h3 className="text-base font-bold text-[var(--text-base)] select-none">
+                                    {t('errorBoundary.title')}
+                                </h3>
+                                <p className="text-xs text-[var(--text-muted)] font-medium leading-relaxed">
+                                    {t('errorBoundary.subtitle')}
+                                </p>
+                            </div>
+
+                            {/* Error Signature Code Block */}
+                            <div className="w-full bg-[#1c1c1c] border border-[var(--md-sys-color-surface-container-highest)] rounded-2xl p-3 text-left overflow-hidden font-shell-console shadow-inner">
+                                <p className="text-[10px] font-shell-console text-[var(--text-subtle)] uppercase mb-1 select-none">{t('errorBoundary.errorSignature')}</p>
+                                <p className="text-xs font-shell-console text-red-400 break-all leading-relaxed font-medium">
+                                    {this.state.error?.message || t('errorBoundary.criticalSystemFailure')}
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <h1 className="text-xl font-black uppercase tracking-widest text-white">{t('errorBoundary.title')}</h1>
-                            <p className="text-sm text-zinc-400 font-medium">{t('errorBoundary.subtitle')}</p>
-                        </div>
-
-                        <div className="bg-black/40 border border-zinc-800 rounded-xl p-4 text-left overflow-hidden">
-                            <p className="text-[10px] font-mono text-zinc-500 uppercase mb-2 tracking-tighter">{t('errorBoundary.errorSignature')}</p>
-                            <p className="text-[11px] font-mono text-red-400 break-all leading-relaxed">
-                                {this.state.error?.message || t('errorBoundary.criticalSystemFailure')}
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
+                        {/* Footer Action Buttons */}
+                        <div className="mt-5 flex gap-2.5 font-sans select-none">
                             <button
                                 onClick={() => window.location.reload()}
-                                className="flex items-center justify-center gap-2 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+                                className="flex-1 py-2.5 px-4 bg-(--md-sys-color-surface-container) hover:bg-[var(--md-sys-color-surface-container-highest)] text-[var(--text-base)] rounded-xl text-xs font-bold transition-colors cursor-pointer border border-transparent select-none flex items-center justify-center gap-1.5"
                             >
-                                <RefreshCcw size={14} />
+                                <RefreshCcw size={14} className="shrink-0" />
                                 {t('errorBoundary.reboot')}
                             </button>
                             <button
                                 onClick={this.handleExportDiagnostics}
-                                className="flex items-center justify-center gap-2 py-3 bg-primary text-on-primary rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20 hover:opacity-90"
+                                className="flex-1 py-2.5 px-4 bg-primary text-on-primary rounded-xl text-xs font-bold transition-all hover:opacity-95 cursor-pointer shadow-md border border-transparent select-none flex items-center justify-center gap-1.5"
                             >
-                                <Download size={14} />
+                                <Download size={14} className="shrink-0" />
                                 {t('errorBoundary.exportLogs')}
                             </button>
                         </div>
-
-                        <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{t('errorBoundary.recoveryEngine')}</p>
                     </div>
                 </div>
             );

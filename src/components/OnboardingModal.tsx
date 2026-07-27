@@ -1,4 +1,4 @@
-import { CheckCircle2, Download, Cpu, ArrowRight, X, ExternalLink, HelpCircle } from 'lucide-react';
+import { CheckCircle2, Download, Cpu, HelpCircle, Loader2, ExternalLink, ArrowRight } from 'lucide-react';
 import { useI18n } from '../i18n';
 
 interface OnboardingModalProps {
@@ -13,7 +13,7 @@ interface OnboardingModalProps {
 
 export default function OnboardingModal({
     isOpen,
-    onClose,
+    onClose: _onClose,
     binaryStatus,
     onDownload,
     isDownloading,
@@ -26,33 +26,27 @@ export default function OnboardingModal({
     const isReady = binaryStatus.found;
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 overflow-hidden font-sans">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-in fade-in duration-500"></div>
+            <div className="absolute inset-0 bg-black/40 animate-in fade-in duration-300"></div>
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
-                <div className="absolute top-0 right-0 p-6 z-30">
-                    <button onClick={onClose} className="p-2 text-zinc-500 hover:text-white transition-colors">
-                        <X size={24} />
-                    </button>
-                </div>
-
-                <div className="flex flex-col md:flex-row h-full">
+            <div className="relative w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 font-sans">
+                <div className="flex flex-col md:flex-row h-full font-sans">
                     {/* Left Side: Branding/Logo */}
-                    <div className="hidden md:flex md:w-1/3 bg-primary/10 border-r border-zinc-800 p-8 flex-col justify-between relative overflow-hidden">
+                    <div className="hidden md:flex md:w-1/3 bg-primary/10 border-r border-zinc-800 p-8 flex-col justify-between relative overflow-hidden font-sans">
                         <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent opacity-50 blur-3xl"></div>
 
                         <div className="relative z-10">
-                            <h2 className="text-3xl font-black italic tracking-tighter uppercase">
-                                scrcpy <span className="text-primary not-italic">GUI</span>
+                            <h2 className="text-display-brand text-white inline-flex items-baseline gap-1.5 select-none">
+                                <span>SCRCPY</span>
+                                <span className="text-primary">GUI</span>
                             </h2>
-                            <p className="text-[10px] uppercase font-black tracking-widest text-primary mt-2">{t('onboarding.coreInitialization')}</p>
                         </div>
 
                         <div className="relative z-10 space-y-4">
                             <div className="p-4 rounded-2xl bg-black/40 border border-white/5 backdrop-blur-sm">
-                                <p className="text-[10px] text-zinc-400 leading-relaxed font-medium">
+                                <p className="text-xs text-zinc-300 leading-normal font-medium">
                                     {t('onboarding.introQuote')}
                                 </p>
                             </div>
@@ -60,13 +54,13 @@ export default function OnboardingModal({
                     </div>
 
                     {/* Right Side: Setup */}
-                    <div className="flex-1 p-8 sm:p-12">
-                        <div className="mb-10">
-                            <h3 className="text-2xl font-black tracking-tight text-white mb-2 uppercase italic">{t('onboarding.setupCoreComponents')}</h3>
-                            <p className="text-zinc-500 text-sm font-medium">{t('onboarding.setupCoreSubtitle')}</p>
+                    <div className="flex-1 p-8 sm:p-12 font-sans">
+                        <div className="mb-8">
+                            <h3 className="text-xl font-bold text-white mb-1.5 select-none">{t('onboarding.setupCoreComponents')}</h3>
+                            <p className="text-zinc-400 text-xs font-medium leading-normal">{t('onboarding.setupCoreSubtitle')}</p>
                         </div>
 
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             <div className="flex gap-4 group">
                                 <div className="flex flex-col items-center">
                                     <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border transition-all duration-300 ${isReady
@@ -78,10 +72,10 @@ export default function OnboardingModal({
                                 </div>
 
                                 <div className="flex-1 pt-1">
-                                    <h4 className={`text-sm font-black uppercase tracking-widest ${isReady ? 'text-white' : 'text-zinc-400'}`}>
+                                    <h4 className={`text-sm font-bold select-none ${isReady ? 'text-white' : 'text-zinc-300'}`}>
                                         {t('onboarding.binariesAndDrivers')}
                                     </h4>
-                                    <p className="text-xs text-zinc-500 leading-relaxed font-medium mb-4">
+                                    <p className="text-xs text-zinc-400 leading-normal font-medium mb-4">
                                         {t('onboarding.binariesDescription')}
                                     </p>
 
@@ -90,19 +84,29 @@ export default function OnboardingModal({
                                             <button
                                                 onClick={onDownload}
                                                 disabled={isDownloading}
-                                                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl text-xs font-bold transition-all hover:bg-primary/90 cursor-pointer shadow-md disabled:opacity-50 disabled:pointer-events-none"
                                             >
                                                 {isDownloading ? (
-                                                    <><RefreshCcw size={12} className="animate-spin" /> {t('onboarding.downloadingProgress', { progress: downloadProgress })}</>
+                                                    <><Loader2 size={14} className="animate-spin" /> {t('onboarding.downloadingProgress', { progress: downloadProgress })}</>
                                                 ) : (
                                                     <><Download size={14} /> {t('onboarding.downloadCoreBinaries')}</>
                                                 )}
                                             </button>
 
                                             {isDownloading && (
-                                                <div className="w-full max-w-sm">
-                                                    <div className="h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
-                                                        <div className="h-full bg-primary transition-all duration-300 shadow-[0_0_10px_rgba(139,92,246,0.5)]" style={{ width: `${downloadProgress}%` }} />
+                                                <div className="w-full max-w-sm space-y-2 pt-1">
+                                                    <div className="flex items-center justify-between text-xs font-bold text-primary">
+                                                        <span className="flex items-center gap-2">
+                                                            <Loader2 size={14} className="animate-spin text-primary" />
+                                                            Downloading Engine...
+                                                        </span>
+                                                        <span>{downloadProgress}%</span>
+                                                    </div>
+                                                    <div className="h-2 bg-[var(--md-sys-color-surface-container-highest)] rounded-full overflow-hidden border border-white/10 p-0.5 relative">
+                                                        <div
+                                                            className="h-full bg-primary rounded-full transition-all duration-300 shadow-[0_0_12px_var(--primary)]"
+                                                            style={{ width: `${downloadProgress}%` }}
+                                                        />
                                                     </div>
                                                 </div>
                                             )}
@@ -129,7 +133,6 @@ export default function OnboardingModal({
 
                                     {isReady && (
                                         <div className="flex items-center gap-2 text-emerald-500 animate-in fade-in slide-in-from-left-2 duration-1000">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                                             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">{t('onboarding.successBinariesActive')}</span>
                                         </div>
                                     )}
@@ -156,23 +159,3 @@ export default function OnboardingModal({
         </div>
     );
 }
-
-const RefreshCcw = ({ size, className }: { size: number, className: string }) => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-    >
-        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-        <path d="M3 3v5h5" />
-        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-        <path d="M16 16h5v5" />
-    </svg>
-);
