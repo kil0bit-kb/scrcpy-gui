@@ -38,3 +38,5 @@ scrcpy_temp.tar.gz
 
 # AI Handoff
 history/
+.agents/
+.gitignore

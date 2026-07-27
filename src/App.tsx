@@ -7,16 +7,27 @@ import LogPanel from "./components/LogPanel";
 import Header from "./components/Header";
 import SessionBehavior from "./components/SessionBehavior";
 import ShortcutsPanel from "./components/ShortcutsPanel";
-import Footer from "./components/Footer";
+import AboutPanel from "./components/AboutPanel";
 import ErrorBoundary from "./components/ErrorBoundary";
 import OnboardingModal from "./components/OnboardingModal";
 import ThemedModal from "./components/ThemedModal";
 import { useScrcpy } from "./hooks/useScrcpy";
 import { getVersion } from '@tauri-apps/api/app';
 import { useI18n } from "./i18n";
+import SettingsPanel from "./components/SettingsPanel";
+import { applyMaterialThemeToCss } from './utils/materialTheme';
 
 function App() {
   const { t } = useI18n();
+  const [fontScale, setFontScale] = useState<number>(() => {
+    const saved = localStorage.getItem('scrcpy_gui_font_scale');
+    return saved ? parseInt(saved, 10) : 100;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('scrcpy_gui_font_scale', fontScale.toString());
+    document.documentElement.style.fontSize = `${fontScale}%`;
+  }, [fontScale]);
   const {
     devices,
     logs,
@@ -101,6 +112,10 @@ function App() {
       onCancel
     });
   };
+
+  useEffect(() => {
+    applyMaterialThemeToCss(theme, colorMode);
+  }, [theme, colorMode]);
 
   useEffect(() => {
     // Initial setup: fetch version and close splashscreen
@@ -302,23 +317,11 @@ function App() {
         <div className="fixed top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/30 via-transparent to-transparent pointer-events-none z-0"></div>
 
         <div className="relative z-10 flex flex-col h-screen transition-all duration-700">
-          <Header
-            onThemeChange={setTheme}
-            currentTheme={theme}
-            colorMode={colorMode}
-            onColorModeChange={setColorMode}
-            binaryStatus={scrcpyStatus}
-            onDownload={downloadScrcpy}
-            onSetPath={handleSetPath}
-            onResetPath={handleResetPath}
-            isDownloading={isDownloading}
-            downloadProgress={downloadProgress}
-            version={appVersion}
-          />
+          <div className="flex-1 overflow-y-auto flex flex-col pt-2 custom-scrollbar">
+            <Header version={appVersion} />
 
-          <div className="flex-1 overflow-y-auto flex flex-col pt-6 custom-scrollbar">
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 px-6 pb-6">
-              <div className="lg:col-span-3 flex flex-col">
+              <div className="lg:col-span-3 flex flex-col gap-6">
                 <div className="transition-all duration-700">
                   <Sidebar
                     devices={devices}
@@ -336,6 +339,7 @@ function App() {
                     mdnsDevices={mdnsDevices}
                   />
                 </div>
+                <AboutPanel version={appVersion} />
               </div>
 
               <div className="lg:col-span-6 flex flex-col gap-6 relative z-20">
@@ -353,6 +357,12 @@ function App() {
                         listScrcpyOptions(activeDevice, arg);
                       }
                     }}
+                    binaryStatus={scrcpyStatus}
+                    onDownload={downloadScrcpy}
+                    onSetPath={handleSetPath}
+                    onResetPath={handleResetPath}
+                    isDownloading={isDownloading}
+                    downloadProgress={downloadProgress}
                   />
                 </div>
                 <div className="relative z-10">
@@ -368,10 +378,16 @@ function App() {
               <div className="lg:col-span-3 flex flex-col gap-6">
                 <SessionBehavior config={config} setConfig={setConfig} />
                 <ShortcutsPanel />
+                <SettingsPanel
+                  currentTheme={theme}
+                  onThemeChange={setTheme}
+                  colorMode={colorMode}
+                  onColorModeChange={setColorMode}
+                  fontScale={fontScale}
+                  onFontScaleChange={setFontScale}
+                />
               </div>
             </div>
-
-            <Footer version={appVersion} />
           </div>
         </div>
 

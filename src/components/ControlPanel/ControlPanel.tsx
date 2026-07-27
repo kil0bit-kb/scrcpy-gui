@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { Play, Square, Monitor, Camera, LayoutGrid, ChevronDown, Lock, Unlock, Settings2, Video, ExternalLink, Keyboard, Mouse } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { DesktopWindows, PhotoCamera, GridView, Keyboard, PlayArrow, Square, Tune, Videocam, FolderOpen } from '@nine-thirty-five/material-symbols-react/rounded/700/filled';
+import { ExternalLink, Mouse, RefreshCcw, Download } from 'lucide-react';
 import { RenderDriverSupport, ScrcpyConfig } from '../../hooks/useScrcpy';
 import Tooltip from '../Tooltip';
+import CustomDropdown from '../CustomDropdown';
 import { buildRendererOptions, mapRendererSelection } from './rendererOptions';
 import { useI18n } from '../../i18n';
 
@@ -14,6 +16,12 @@ interface ControlPanelProps {
     onListOptions: (arg: string) => void;
     detectedCameras?: { id: string, name: string }[];
     renderDriverSupport?: RenderDriverSupport;
+    binaryStatus?: { found: boolean; message: string };
+    onDownload?: () => void;
+    onSetPath?: () => void;
+    onResetPath?: () => void;
+    isDownloading?: boolean;
+    downloadProgress?: number;
 }
 
 const BitrateControl = ({ label, value, onChange }: { label: string, value: number, onChange: (val: number) => void }) => {
@@ -75,7 +83,13 @@ export default function ControlPanel({
     isRunning,
     onListOptions,
     detectedCameras = [],
-    renderDriverSupport = { hostOs: 'unknown', supportsRenderDriver: false, supportedDrivers: [] }
+    renderDriverSupport = { hostOs: 'unknown', supportsRenderDriver: false, supportedDrivers: [] },
+    binaryStatus,
+    onDownload,
+    onSetPath,
+    onResetPath,
+    isDownloading = false,
+    downloadProgress: _downloadProgress = 0
 }: ControlPanelProps) {
     const { t } = useI18n();
 
@@ -85,54 +99,7 @@ export default function ControlPanel({
 
     const rendererOptions = buildRendererOptions(renderDriverSupport, t('controlPanel.rendererAuto'));
 
-    const CustomSelect = ({ value, onChange, options, label, className = "" }: { value: any, onChange: (val: any) => void, options: { value: any, label: string }[], label?: string, className?: string }) => {
-        const [isOpen, setIsOpen] = useState(false);
-        const containerRef = useRef<HTMLDivElement>(null);
-
-        useEffect(() => {
-            const handleClickOutside = (event: MouseEvent) => {
-                if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                    setIsOpen(false);
-                }
-            };
-            if (isOpen) document.addEventListener('mousedown', handleClickOutside);
-            return () => document.removeEventListener('mousedown', handleClickOutside);
-        }, [isOpen]);
-
-        const selectedOption = options.find(opt => opt.value === value) || { value, label: t('controlPanel.custom') };
-
-        return (
-            <div className={`relative ${className}`} ref={containerRef}>
-                {label && <label className="text-[9px] font-black text-zinc-500 uppercase tracking-tighter mb-1 block">{label}</label>}
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1.5 text-[11px] text-zinc-300 flex items-center justify-between hover:border-primary/60 hover:bg-black transition-all group"
-                >
-                    <span className="truncate">{selectedOption?.label}</span>
-                    <ChevronDown size={14} className={`text-zinc-500 group-hover:text-primary transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {isOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-950 border border-zinc-800 rounded-md shadow-2xl z-[100] py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-100 backdrop-blur-xl">
-                        {options.map((opt) => (
-                            <div
-                                key={opt.value}
-                                onClick={() => {
-                                    onChange(opt.value);
-                                    setIsOpen(false);
-                                }}
-                                className={`px-2 py-1.5 text-[11px] cursor-pointer transition-colors ${opt.value === value ? 'bg-primary/20 text-primary font-bold' : 'text-zinc-400 hover:bg-primary hover:text-on-primary font-medium'}`}
-                            >
-                                {opt.label}
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        );
-    };
-
-    // BitrateControl removed from here
+    const CustomSelect = CustomDropdown;
 
     const PerformanceGrid = ({ showResolution = true, showCodec = true }: { showResolution?: boolean, showCodec?: boolean }) => (
         <>
@@ -169,7 +136,7 @@ export default function ControlPanel({
             <CustomSelect
                 label={t('controlPanel.fps')}
                 value={config.fps === undefined || config.fps === null ? 0 : config.fps}
-                onChange={(val) => handleChange('fps', parseInt(val) === 0 ? undefined : parseInt(val))}
+                onChange={(val) => handleChange('fps', Number(val) === 0 ? undefined : Number(val))}
                 options={[
                     { value: 0, label: t('controlPanel.rendererAuto') || "Auto" },
                     { value: 30, label: "30" },
@@ -196,162 +163,218 @@ export default function ControlPanel({
                 options={rendererOptions}
             />
         </div>
-        <Tooltip text={t('controlPanel.vsyncTooltip')}>
-            <div
-                className="flex items-center justify-between gap-2 cursor-pointer group px-2 py-1.5 rounded-lg border border-zinc-800/60 bg-zinc-950/20 hover:border-primary/40 transition-colors"
-                onClick={() => handleChange('vsync', config.vsync === false)}
-            >
-                <div className="flex items-center gap-2">
-                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${config.vsync !== false ? 'bg-primary border-primary' : 'border-zinc-700 group-hover:border-primary'}`}>
-                        {config.vsync !== false && <div className="w-1.5 h-1.5 bg-black rounded-[1px]" />}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 items-center">
+            <Tooltip text={t('controlPanel.vsyncTooltip')}>
+                <div
+                    onClick={() => handleChange('vsync', config.vsync === false)}
+                    className="flex items-center justify-between gap-3 group cursor-pointer py-1.5 px-2.5 bg-[var(--md-sys-color-surface-container)] rounded-xl hover:bg-[var(--md-sys-color-surface-container-high)] transition-all duration-75 ease-out h-full"
+                >
+                    <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-[10px] font-bold text-[var(--text-base)] truncate">{t('controlPanel.vsync')}</span>
+                        <span className="text-[8px] font-black uppercase tracking-tighter text-[var(--text-subtle)]">{t('controlPanel.vsyncHint')}</span>
                     </div>
-                    <span className="text-[10px] font-bold uppercase text-zinc-300 tracking-wide group-hover:text-primary transition-colors">{t('controlPanel.vsync')}</span>
+                    <div className={`w-8 h-4.5 rounded-full transition-colors duration-150 relative shrink-0 ui-switch-track ${config.vsync !== false ? 'bg-primary is-active' : 'bg-[var(--md-sys-color-surface-container-highest)]'}`}>
+                        <div className={`ui-switch-thumb ${config.vsync !== false ? 'bg-on-primary translate-x-3.5 shadow-sm' : 'bg-[var(--text-muted)] translate-x-0'}`} />
+                    </div>
                 </div>
-                <span className="text-[8px] font-black uppercase tracking-tighter text-zinc-600 group-hover:text-primary/70 transition-colors">{t('controlPanel.vsyncHint')}</span>
-            </div>
-        </Tooltip>
+            </Tooltip>
+            <BitrateControl label={t('controlPanel.bitrate')} value={config.bitrate || 8} onChange={(v) => handleChange('bitrate', v)} />
+        </div>
         </>
     );
 
     return (
         <main className="lg:col-span-6 space-y-4">
-            <div className="glass p-3.5 rounded-2xl border border-zinc-800 bg-zinc-900/50 backdrop-blur-md">
-                <div className="flex items-center gap-2 mb-1.5">
-                    <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">{t('controlPanel.captureSource')}</label>
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-stretch">
+                {/* 1. Capture Source Card (Left) */}
+                <div className="sm:col-span-7 glass p-2.5 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] text-[var(--text-base)] backdrop-blur-md border border-[var(--md-sys-color-surface-container-highest)] flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-1.5 px-1">
+                        <label className="text-card-title">{t('controlPanel.captureSource')}</label>
+                    </div>
+                    <div className="grid grid-cols-3 gap-0.5 bg-[var(--md-sys-color-surface-container-highest)] p-1 rounded-2xl">
+                        <button
+                            onClick={() => handleChange('sessionMode', 'mirror')}
+                            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 text-[10px] font-bold transition-all duration-150 ease-out cursor-pointer ${
+                                config.sessionMode === 'mirror'
+                                    ? 'bg-primary text-on-primary font-black shadow-md rounded-2xl z-10 scale-[1.02]'
+                                    : 'rounded-l-2xl rounded-r-xs text-[var(--text-muted)] hover:text-[var(--text-base)] hover:bg-(--md-sys-color-surface-container)'
+                            }`}
+                        >
+                            <DesktopWindows size={16} className="shrink-0" />
+                            <span>{t('controlPanel.screen')}</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleChange('sessionMode', 'camera')}
+                            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 text-[10px] font-bold transition-all duration-150 ease-out cursor-pointer ${
+                                config.sessionMode === 'camera'
+                                    ? 'bg-primary text-on-primary font-black shadow-md rounded-2xl z-10 scale-[1.02]'
+                                    : 'rounded-xs text-[var(--text-muted)] hover:text-[var(--text-base)] hover:bg-(--md-sys-color-surface-container)'
+                            }`}
+                        >
+                            <PhotoCamera size={16} className="shrink-0" />
+                            <span>{t('controlPanel.camera')}</span>
+                        </button>
+
+                        <button
+                            onClick={() => handleChange('sessionMode', 'desktop')}
+                            className={`flex items-center justify-center gap-1.5 py-1.5 px-2 text-[10px] font-bold transition-all duration-150 ease-out cursor-pointer ${
+                                config.sessionMode === 'desktop'
+                                    ? 'bg-primary text-on-primary font-black shadow-md rounded-2xl z-10 scale-[1.02]'
+                                    : 'rounded-r-2xl rounded-l-xs text-[var(--text-muted)] hover:text-[var(--text-base)] hover:bg-(--md-sys-color-surface-container)'
+                            }`}
+                        >
+                            <GridView size={16} className="shrink-0" />
+                            <span>{t('controlPanel.desktop')}</span>
+                        </button>
+                    </div>
                 </div>
-                <div className="grid grid-cols-3 gap-1.5 bg-zinc-950/50 p-1 rounded-xl border border-zinc-800">
-                    <button
-                        onClick={() => handleChange('sessionMode', 'mirror')}
-                        className={`flex flex-col items-center gap-1.5 py-2.5 rounded-lg transition-all ${config.sessionMode === 'mirror' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-zinc-500 hover:text-primary hover:bg-zinc-950 transition-all'}`}
-                    >
-                        <Monitor size={18} strokeWidth={2.5} />
-                        <span className="text-[9px] font-black uppercase tracking-wider">{t('controlPanel.screen')}</span>
-                    </button>
-                    <button
-                        onClick={() => handleChange('sessionMode', 'camera')}
-                        className={`flex flex-col items-center gap-1.5 py-2.5 rounded-lg transition-all ${config.sessionMode === 'camera' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-zinc-500 hover:text-primary hover:bg-zinc-950 transition-all'}`}
-                    >
-                        <Camera size={18} strokeWidth={2.5} />
-                        <span className="text-[9px] font-black uppercase tracking-wider">{t('controlPanel.camera')}</span>
-                    </button>
-                    <button
-                        onClick={() => handleChange('sessionMode', 'desktop')}
-                        className={`flex flex-col items-center gap-1.5 py-2.5 rounded-lg transition-all ${config.sessionMode === 'desktop' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-zinc-500 hover:text-primary hover:bg-zinc-950 transition-all'}`}
-                    >
-                        <LayoutGrid size={18} strokeWidth={2.5} />
-                        <span className="text-[9px] font-black uppercase tracking-wider">{t('controlPanel.desktop')}</span>
-                    </button>
+
+                {/* 2. Custom Engine Path Card (Right) */}
+                <div className="sm:col-span-5 glass p-2.5 rounded-2xl bg-[var(--md-sys-color-surface-container-high)] text-[var(--text-base)] backdrop-blur-md border border-[var(--md-sys-color-surface-container-highest)] flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-1.5 px-1">
+                        <label className="text-card-title">Engine Path</label>
+                    </div>
+                    <div className="flex items-center justify-between gap-1.5 bg-[var(--md-sys-color-surface-container-highest)] p-1 rounded-2xl">
+                        {onSetPath && (
+                            <button
+                                onClick={onSetPath}
+                                className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-[10px] font-bold text-[var(--text-base)] hover:bg-(--md-sys-color-surface-container) transition-all cursor-pointer"
+                                title="Custom Scrcpy Core Folder"
+                            >
+                                <FolderOpen size={14} className="text-primary shrink-0" />
+                                <span className="truncate">Select Folder</span>
+                            </button>
+                        )}
+                        {onResetPath && (
+                            <Tooltip text="Reset Core Path">
+                                <button
+                                    onClick={onResetPath}
+                                    className="p-1.5 rounded-xl text-[var(--text-muted)] hover:text-white bg-(--md-sys-color-surface-container) hover:bg-red-600 border border-transparent hover:border-red-500 transition-all cursor-pointer shrink-0 shadow-sm flex items-center justify-center group/reset"
+                                >
+                                    <RefreshCcw size={14} className="group-hover/reset:rotate-180 transition-transform duration-300" />
+                                </button>
+                            </Tooltip>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            <div className="glass p-3.5 rounded-xl space-y-3 transition-all duration-300 border border-zinc-800 bg-zinc-900/40 backdrop-blur-md relative z-20">
-                <div className="flex justify-between items-center border-b border-zinc-800/60 pb-1.5 mb-1">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-[11px] font-black uppercase text-zinc-400 tracking-widest">{t('controlPanel.engineConfiguration')}</h2>
-                        <div className="flex gap-1.5">
-                            {config.sessionMode === 'mirror' && (config.hidKeyboard || config.hidMouse) && config.otgPure && (
-                                <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-500/10 text-red-500/80 border border-red-500/20">
-                                    {t('controlPanel.otgOnly')}
-                                </span>
-                            )}
-                            <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded border ${isRunning ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-zinc-800/30 text-zinc-600 border-zinc-700/30'}`}>
-                                {isRunning ? t('controlPanel.active') : t('controlPanel.ready')}
-                            </span>
-                        </div>
+            <div className="glass p-3.5 rounded-2xl space-y-3 transition-all duration-75 ease-out bg-[var(--md-sys-color-surface-container-high)] text-[var(--text-base)] backdrop-blur-md relative z-20 border border-[var(--md-sys-color-surface-container-highest)]">
+                <div className="flex justify-between items-center border-b border-[var(--md-sys-color-surface-container-highest)] pb-1.5 mb-1">
+                    <div className="flex items-center gap-2.5">
+                        <Tune size={18} className="text-primary shrink-0" />
+                        <h2 className="text-card-title">{t('controlPanel.engineConfiguration')}</h2>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        {binaryStatus && !binaryStatus.found && !isDownloading && onDownload && (
+                            <button
+                                onClick={onDownload}
+                                className="px-2 py-0.5 bg-emerald-500 text-black border border-emerald-400 rounded-md text-[8px] font-black hover:bg-emerald-400 transition-all uppercase tracking-tighter shadow-sm cursor-pointer flex items-center gap-1"
+                            >
+                                <Download size={10} /> {t('header.installCore')}
+                            </button>
+                        )}
                     </div>
                 </div>
 
                 <div className="space-y-2.5 relative z-30">
                     {/* Screen Config */}
                     {config.sessionMode === 'mirror' && (
-                        <>
-                            <div className="space-y-3 p-3 rounded-xl border border-zinc-800 bg-zinc-950/20">
+                        <div key="mirror" className="space-y-2.5 animate-in fade-in zoom-in-98 duration-300 ease-out">
+                            <div className="space-y-3 p-3 rounded-2xl bg-(--md-sys-color-surface-container) text-[var(--text-base)]">
                                 <div className="flex items-center gap-2 mb-0.5">
-                                    <Keyboard size={12} className="text-primary" />
-                                    <span className="text-[9px] font-black uppercase text-zinc-400 tracking-widest">{t('controlPanel.inputEnhancements')}</span>
+                                    <Keyboard size={14} className="text-primary shrink-0" />
+                                    <span className="text-sm font-black text-[var(--text-base)]">{t('controlPanel.inputEnhancements')}</span>
                                 </div>
-                                <p className="text-[8px] text-zinc-500 leading-relaxed mb-1">
+                                <p className="text-xs text-[var(--text-muted)] leading-relaxed mb-1 font-medium">
                                     {t('controlPanel.inputEnhancementsDescription')}
                                 </p>
 
-                                <div className="grid grid-cols-1 gap-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {/* HID Keyboard */}
-                                    <Tooltip text={t('controlPanel.hidKeyboardTooltip')}>
-                                        <div className="flex items-start gap-3 cursor-pointer group" onClick={() => handleChange('hidKeyboard', !config.hidKeyboard)}>
-                                            <div className={`mt-0.5 w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${config.hidKeyboard ? 'bg-primary border-primary' : 'border-zinc-700 group-hover:border-primary'}`}>
-                                                {config.hidKeyboard && <div className="w-1.5 h-1.5 bg-black rounded-[1px]" />}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Keyboard size={10} className={config.hidKeyboard ? 'text-primary' : 'text-zinc-500'} />
-                                                    <span className="text-[10px] font-bold uppercase text-zinc-300 tracking-wide group-hover:text-primary">{t('controlPanel.hidKeyboard')}</span>
-                                                </div>
+                                    <div
+                                        onClick={() => handleChange('hidKeyboard', !config.hidKeyboard)}
+                                        className="flex items-center justify-between gap-3 group cursor-pointer py-1.5 px-3 bg-[var(--md-sys-color-surface-container-high)] rounded-full hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-75 ease-out"
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <Keyboard size={14} className={`shrink-0 ${config.hidKeyboard ? 'text-primary' : 'text-[var(--text-muted)] group-hover:text-[var(--text-base)]'}`} />
+                                            <span className="text-[10px] font-bold text-[var(--text-base)] truncate">{t('controlPanel.hidKeyboard')}</span>
+                                            <div onClick={(e) => e.stopPropagation()}>
+                                                <Tooltip text={t('controlPanel.hidKeyboardTooltip')} />
                                             </div>
                                         </div>
-                                    </Tooltip>
+                                        <div className={`w-8 h-4.5 rounded-full transition-colors duration-150 relative shrink-0 ui-switch-track ${config.hidKeyboard ? 'bg-primary is-active' : 'bg-[var(--md-sys-color-surface-container-highest)]'}`}>
+                                            <div className={`ui-switch-thumb ${config.hidKeyboard ? 'bg-on-primary translate-x-3.5 shadow-sm' : 'bg-[var(--text-muted)] translate-x-0'}`} />
+                                        </div>
+                                    </div>
 
                                     {/* HID Mouse */}
-                                    <Tooltip text={t('controlPanel.hidMouseTooltip')}>
-                                        <div className="flex items-start gap-3 cursor-pointer group" onClick={() => handleChange('hidMouse', !config.hidMouse)}>
-                                            <div className={`mt-0.5 w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${config.hidMouse ? 'bg-primary border-primary' : 'border-zinc-700 group-hover:border-primary'}`}>
-                                                {config.hidMouse && <div className="w-1.5 h-1.5 bg-black rounded-[1px]" />}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-1.5">
-                                                    <Mouse size={10} className={config.hidMouse ? 'text-primary' : 'text-zinc-500'} />
-                                                    <span className="text-[10px] font-bold uppercase text-zinc-300 tracking-wide group-hover:text-primary">{t('controlPanel.hidMouse')}</span>
-                                                </div>
+                                    <div
+                                        onClick={() => handleChange('hidMouse', !config.hidMouse)}
+                                        className="flex items-center justify-between gap-3 group cursor-pointer py-1.5 px-3 bg-[var(--md-sys-color-surface-container-high)] rounded-full hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-75 ease-out"
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <Mouse size={14} className={`shrink-0 ${config.hidMouse ? 'text-primary' : 'text-[var(--text-muted)] group-hover:text-[var(--text-base)]'}`} />
+                                            <span className="text-[10px] font-bold text-[var(--text-base)] truncate">{t('controlPanel.hidMouse')}</span>
+                                            <div onClick={(e) => e.stopPropagation()}>
+                                                <Tooltip text={t('controlPanel.hidMouseTooltip')} />
                                             </div>
                                         </div>
-                                    </Tooltip>
+                                        <div className={`w-8 h-4.5 rounded-full transition-colors duration-150 relative shrink-0 ui-switch-track ${config.hidMouse ? 'bg-primary is-active' : 'bg-[var(--md-sys-color-surface-container-highest)]'}`}>
+                                            <div className={`ui-switch-thumb ${config.hidMouse ? 'bg-on-primary translate-x-3.5 shadow-sm' : 'bg-[var(--text-muted)] translate-x-0'}`} />
+                                        </div>
+                                    </div>
 
                                     {/* Advanced: Pure HID (Old OTG Pure) */}
                                     {(config.hidKeyboard || config.hidMouse) && (
-                                        <Tooltip text={t('controlPanel.pureHidTooltip')}>
-                                            <div className="flex items-start gap-3 ml-0.5 cursor-pointer group animate-in slide-in-from-top-1 duration-200" onClick={() => handleChange('otgPure', !config.otgPure)}>
-                                                <div className={`mt-0.5 w-3 h-3 rounded border flex items-center justify-center transition-colors ${config.otgPure ? 'bg-red-500 border-red-500' : 'border-zinc-700 group-hover:border-red-500'}`}>
-                                                    {config.otgPure && <div className="w-1 h-1 bg-white rounded-[1px]" />}
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className={`text-[9px] font-bold uppercase tracking-wider transition-colors ${config.otgPure ? 'text-red-400' : 'text-zinc-500 group-hover:text-red-400'}`}>{t('controlPanel.pureHid')}</span>
+                                        <div
+                                            onClick={() => handleChange('otgPure', !config.otgPure)}
+                                            className="flex items-center justify-between gap-3 group cursor-pointer py-1.5 px-3 bg-[var(--md-sys-color-surface-container-high)] rounded-full hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all duration-75 ease-out animate-in slide-in-from-top-1 duration-200"
+                                        >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <span className={`text-[10px] font-bold truncate ${config.otgPure ? 'text-red-400 font-black' : 'text-[var(--text-base)]'}`}>{t('controlPanel.pureHid')}</span>
+                                                <div onClick={(e) => e.stopPropagation()}>
+                                                    <Tooltip text={t('controlPanel.pureHidTooltip')} />
                                                 </div>
                                             </div>
-                                        </Tooltip>
+                                            <div className={`w-8 h-4.5 rounded-full transition-colors duration-150 relative shrink-0 ui-switch-track ${config.otgPure ? 'bg-red-500 is-danger' : 'bg-[var(--md-sys-color-surface-container-highest)]'}`}>
+                                                <div className={`ui-switch-thumb ${config.otgPure ? 'bg-white translate-x-3.5 shadow-sm' : 'bg-[var(--text-muted)] translate-x-0'}`} />
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </div>
 
                             <div className={`space-y-2.5 pt-0.5 transition-all duration-300 ${config.otgPure ? 'opacity-30 pointer-events-none grayscale' : 'opacity-100'}`}>
                                 <PerformanceGrid />
-                                <BitrateControl label={t('controlPanel.bitrate')} value={config.bitrate || 8} onChange={(v) => handleChange('bitrate', v)} />
                             </div>
-                        </>
+                        </div>
                     )}
 
                     {/* Camera Config */}
                     {config.sessionMode === 'camera' && (
-                        <div className="space-y-3 animate-in fade-in duration-300">
+                        <div key="camera" className="space-y-3 animate-in fade-in zoom-in-98 duration-300 ease-out">
                             {/* Webcam Pro Tip */}
-                            <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 flex gap-3 group/tip hover:bg-primary/10 transition-all">
-                                <div className="mt-1">
-                                    <div className="bg-primary/20 p-1.5 rounded-lg text-primary">
-                                        <Video size={14} />
-                                    </div>
+                            <div className="bg-[var(--md-sys-color-primary-container)] border border-primary/30 rounded-2xl p-3.5 flex items-start gap-3.5 group/tip hover:bg-primary/20 transition-all font-sans shadow-sm">
+                                <div className="p-2.5 rounded-2xl bg-primary/20 text-primary shrink-0 flex items-center justify-center">
+                                    <Videocam size={22} className="shrink-0" />
                                 </div>
-                                <div className="space-y-1">
+                                <div className="space-y-1 flex-1 font-sans">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="text-[10px] font-black uppercase text-primary tracking-widest">{t('controlPanel.webcamProTip')}</h4>
+                                        <h4 className="text-xs font-bold uppercase text-primary tracking-wide select-none">{t('controlPanel.webcamProTip')}</h4>
                                         <a
                                             href="https://obsproject.com/"
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-[9px] font-bold text-zinc-500 hover:text-primary flex items-center gap-1 transition-colors"
+                                            className="text-xs font-bold text-[var(--text-muted)] hover:text-primary flex items-center gap-1 transition-colors select-none"
                                         >
-                                            {t('controlPanel.getObs')} <ExternalLink size={10} />
+                                            {t('controlPanel.getObs')} <ExternalLink size={12} />
                                         </a>
                                     </div>
-                                    <p className="text-[10px] text-zinc-400 leading-relaxed">
-                                        {t('controlPanel.webcamProTipTextBefore')} <span className="text-zinc-200 font-bold">{t('controlPanel.webcamProTipObs')}</span> {t('controlPanel.webcamProTipAndStart')} <span className="text-zinc-200 font-bold">{t('controlPanel.webcamProTipVirtualCamera')}</span>{t('controlPanel.webcamProTipTextAfter')}
+                                    <p className="text-xs text-[var(--text-muted)] leading-relaxed font-medium">
+                                        {t('controlPanel.webcamProTipTextBefore')} <span className="text-[var(--text-base)] font-bold">{t('controlPanel.webcamProTipObs')}</span> {t('controlPanel.webcamProTipAndStart')} <span className="text-[var(--text-base)] font-bold">{t('controlPanel.webcamProTipVirtualCamera')}</span>{t('controlPanel.webcamProTipTextAfter')}
                                     </p>
                                 </div>
                             </div>
@@ -449,34 +472,41 @@ export default function ControlPanel({
 
                     {/* Desktop Config */}
                     {config.sessionMode === 'desktop' && (
-                        <div className="space-y-3 animate-in fade-in duration-300">
+                        <div key="desktop" className="space-y-3 animate-in fade-in zoom-in-98 duration-300 ease-out">
                             <div className="p-3.5 rounded-xl border border-zinc-800 bg-zinc-950/40 space-y-4">
-                                <div className="flex items-center justify-between border-b border-zinc-800/50 pb-2">
+                                <div className="flex items-center justify-between border-b border-[var(--md-sys-color-surface-container-highest)] pb-2 mb-2">
                                     <div className="flex items-center gap-2">
-                                        <Settings2 size={12} className="text-primary" />
-                                        <h3 className="text-[10px] font-black uppercase text-zinc-300 tracking-widest">{t('controlPanel.virtualDisplayEngine')}</h3>
+                                        <DesktopWindows size={18} className="text-primary shrink-0" />
+                                        <h3 className="text-xs font-bold uppercase text-primary tracking-wide select-none">{t('controlPanel.virtualDisplayEngine')}</h3>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        {/* v4: Flex Display toggle */}
-                                        <Tooltip text={t('controlPanel.flexDisplayTooltip')}>
-                                            <button
-                                                onClick={() => handleChange('flexDisplay', !config.flexDisplay)}
-                                                className={`flex items-center gap-1.5 transition-colors ${config.flexDisplay ? 'text-primary' : 'text-zinc-600 hover:text-zinc-400'}`}
-                                                title={t('controlPanel.flexDisplay')}
-                                            >
-                                                <span className={`text-[8px] font-black uppercase tracking-tighter px-1 py-0.5 rounded border transition-colors ${config.flexDisplay ? 'bg-primary/10 border-primary/40 text-primary' : 'border-zinc-700 text-zinc-600'}`}>
-                                                    {t('controlPanel.flexDisplay')}
-                                                </span>
-                                            </button>
-                                        </Tooltip>
-                                        <button
-                                            onClick={() => handleChange('aspectRatioLock', !config.aspectRatioLock)}
-                                            className={`flex items-center gap-1.5 transition-colors ${config.aspectRatioLock ? 'text-primary' : 'text-zinc-600 hover:text-zinc-400'}`}
-                                            title={t('controlPanel.ratioLockTitle')}
+                                        {/* Flex Display Toggle */}
+                                        <div
+                                            onClick={() => handleChange('flexDisplay', !config.flexDisplay)}
+                                            className="flex items-center gap-1.5 group cursor-pointer py-1 px-2.5 bg-[var(--md-sys-color-surface-container-high)] rounded-full hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all border border-[var(--md-sys-color-surface-container-highest)]"
                                         >
-                                            {config.aspectRatioLock ? <Lock size={10} /> : <Unlock size={10} />}
-                                            <span className="text-[8px] font-black uppercase tracking-tighter">{t('controlPanel.ratioLock')}</span>
-                                        </button>
+                                            <span className="text-[10px] font-bold text-[var(--text-base)] select-none">{t('controlPanel.flexDisplay')}</span>
+                                            <div onClick={(e) => e.stopPropagation()}>
+                                                <Tooltip text={t('controlPanel.flexDisplayTooltip')} />
+                                            </div>
+                                            <div className={`w-8 h-4.5 rounded-full transition-colors duration-150 relative shrink-0 ui-switch-track ${config.flexDisplay ? 'bg-primary is-active' : 'bg-[var(--md-sys-color-surface-container-highest)]'}`}>
+                                                <div className={`ui-switch-thumb ${config.flexDisplay ? 'bg-on-primary translate-x-3.5 shadow-sm' : 'bg-[var(--text-muted)] translate-x-0'}`} />
+                                            </div>
+                                        </div>
+
+                                        {/* Ratio Lock Toggle */}
+                                        <div
+                                            onClick={() => handleChange('aspectRatioLock', !config.aspectRatioLock)}
+                                            className="flex items-center gap-1.5 group cursor-pointer py-1 px-2.5 bg-[var(--md-sys-color-surface-container-high)] rounded-full hover:bg-[var(--md-sys-color-surface-container-highest)] transition-all border border-[var(--md-sys-color-surface-container-highest)]"
+                                        >
+                                            <span className="text-[10px] font-bold text-[var(--text-base)] select-none">{t('controlPanel.ratioLock')}</span>
+                                            <div onClick={(e) => e.stopPropagation()}>
+                                                <Tooltip text={t('controlPanel.ratioLockTitle')} />
+                                            </div>
+                                            <div className={`w-8 h-4.5 rounded-full transition-colors duration-150 relative shrink-0 ui-switch-track ${config.aspectRatioLock ? 'bg-primary is-active' : 'bg-[var(--md-sys-color-surface-container-highest)]'}`}>
+                                                <div className={`ui-switch-thumb ${config.aspectRatioLock ? 'bg-on-primary translate-x-3.5 shadow-sm' : 'bg-[var(--text-muted)] translate-x-0'}`} />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -535,7 +565,7 @@ export default function ControlPanel({
                                             if (w === 2560 && h === 1440) return "1440p";
                                             if (w === 3840 && h === 2160) return "4k";
                                             if (w === 2560 && h === 1080) return "ultrawide";
-                                            return "custom";
+                                            return "Custom";
                                         })()}
                                         onChange={(val: string) => {
                                             if (val === '1080p') setConfig({ ...config, vdWidth: 1920, vdHeight: 1080 });
@@ -591,14 +621,14 @@ export default function ControlPanel({
                 {!isRunning ? (
                     <button
                         onClick={onStart}
-                        className="w-full py-3.5 rounded-2xl text-base font-black uppercase tracking-[0.2em] transition-all relative overflow-hidden group active:scale-[0.98]"
+                        className="w-full py-3.5 rounded-full active:rounded-2xl text-sm font-black transition-[border-radius,opacity] duration-200 cubic-bezier(0.16,1,0.3,1) relative overflow-hidden group cursor-pointer shadow-md select-none"
                     >
                         {/* Pulse Glow Layer */}
-                        <div className="absolute inset-0 bg-primary opacity-80 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-primary opacity-90 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-0 bg-primary animate-ping opacity-20 group-hover:opacity-40 pointer-events-none" />
 
-                        <span className="relative z-10 flex items-center justify-center gap-3 text-on-primary">
-                            <Play fill="currentColor" size={18} className="group-hover:scale-110 transition-transform" />
+                        <span className="relative z-10 flex items-center justify-center gap-2.5 text-on-primary">
+                            <PlayArrow size={22} className="shrink-0" />
                             {config.sessionMode === 'mirror'
                                 ? ((config.hidKeyboard || config.hidMouse) && config.otgPure ? t('controlPanel.initializeOtg') : t('controlPanel.startMission'))
                                 : config.sessionMode === 'camera' ? t('controlPanel.engageCamera') : t('controlPanel.ejectToDesktop')}
@@ -607,13 +637,13 @@ export default function ControlPanel({
                 ) : (
                     <button
                         onClick={onStop}
-                        className="w-full py-3.5 rounded-2xl text-base font-black uppercase tracking-[0.2em] transition-all relative overflow-hidden group active:scale-[0.98] border border-red-500/50"
+                        className="w-full py-3.5 rounded-full active:rounded-2xl text-sm font-black transition-[border-radius,opacity] duration-200 cubic-bezier(0.16,1,0.3,1) relative overflow-hidden group cursor-pointer shadow-md select-none"
                     >
                         {/* Dark Red Gradient Background */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-900 group-hover:from-red-500 group-hover:to-red-800 transition-all" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-800 group-hover:from-red-500 group-hover:to-red-700 transition-all" />
 
-                        <span className="relative z-10 flex items-center justify-center gap-3 text-white">
-                            <Square fill="white" size={18} className="group-hover:rotate-90 transition-transform duration-500" />
+                        <span className="relative z-10 flex items-center justify-center gap-2.5 text-white">
+                            <Square size={22} className="group-hover:rotate-90 transition-transform duration-500" />
                             {t('controlPanel.stopSession')}
                         </span>
                     </button>

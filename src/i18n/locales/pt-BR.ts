@@ -37,6 +37,12 @@ export const ptBR: Translations = {
             system: 'Sistema'
         },
         languageLabel: 'Idioma',
+        usbDebuggingTitle: 'Ativar Depuração USB',
+        usbDebuggingDesc: 'No seu dispositivo Android, vá em Configurações > Opções do Desenvolvedor e ative a Depuração USB.',
+        connectDeviceTitle: 'Conectar Seu Dispositivo',
+        connectDeviceDesc: 'Conecte via cabo USB ou use a Depuração Sem Fio para parear via Wi-Fi.',
+        otgModeTitle: 'Modo HID / OTG',
+        otgModeDesc: 'Ative o redirecionamento de Teclado ou Mouse para controle direto de hardware sem instalar o app servidor do scrcpy.',
         tagline: 'Espelhar & Controlar Android // Dispositivos com Facilidade',
         scrcpyEngine: 'Motor Scrcpy',
         scrcpyReady: 'Scrcpy Pronto',
@@ -253,7 +259,7 @@ export const ptBR: Translations = {
     footer: {
         aboutScrcpyGui: 'Sobre o Scrcpy GUI',
         github: 'Github',
-        youtube: 'Youtube',
+        youtube: 'YouTube',
         website: 'Site',
         support: 'Apoiar',
         core: 'Núcleo',

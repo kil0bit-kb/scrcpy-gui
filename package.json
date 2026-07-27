@@ -13,6 +13,9 @@
     "build:linux": "NO_STRIP=1 APPIMAGE_EXTRACT_AND_RUN=1 LINUXDEPLOY_EXCLUDE_LIBS=libwayland-client.so.0:libwayland-cursor.so.0:libwayland-egl.so.1:libwayland-server.so.0 npm run tauri build"
   },
   "dependencies": {
+    "@material/material-color-utilities": "^0.3.0",
+    "@material/web": "^2.2.0",
+    "@nine-thirty-five/material-symbols-react": "^2.2.0",
     "@tailwindcss/postcss": "4.2.4",
     "@tauri-apps/api": "2.10.1",
     "@tauri-apps/plugin-dialog": "2.7.0",
