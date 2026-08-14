@@ -168,12 +168,50 @@ pub async fn check_scrcpy(custom_path: Option<String>) -> serde_json::Value {
     }
 }
 
+/// ADB device states that can appear in the second column of `adb devices -l`
+/// output. Only "device" means the device is connected and authorized; every
+/// other state (offline, mid-pairing, unauthorized, ...) is not usable yet.
+const KNOWN_ADB_STATES: &[&str] = &[
+    "device",
+    "offline",
+    "unauthorized",
+    "authorizing",
+    "unknown",
+    "bootloader",
+    "recovery",
+    "sideload",
+    "host",
+    "connecting",
+];
+
+/// Parses one data line of `adb devices -l` output into `(serial, state)`.
+///
+/// The serial and state are whitespace-separated, but the serial itself can
+/// contain a space: an mDNS wireless-debugging serial in "conflict" form
+/// (when two devices would otherwise resolve to the same mDNS name) looks
+/// like `adb-SERIAL (2)._adb-tls-connect._tcp`. Splitting on the first
+/// whitespace run, or assuming a specific serial shape, would misparse that
+/// case. Instead this finds the first token that is a *known ADB state* and
+/// treats everything before it as the serial, so it corresponds to the state
+/// ADB actually reports, regardless of the serial's shape (USB ID, IP:port,
+/// or mDNS name). Any further `-l` fields (`product:... model:...
+/// transport_id:...`) are simply ignored.
+fn parse_adb_device_line(line: &str) -> Option<(String, String)> {
+    let tokens: Vec<&str> = line.split_whitespace().collect();
+    let state_idx = tokens.iter().position(|t| KNOWN_ADB_STATES.contains(t))?;
+    if state_idx == 0 {
+        return None; // no serial before the state
+    }
+    Some((tokens[..state_idx].join(" "), tokens[state_idx].to_string()))
+}
+
 #[tauri::command]
 pub async fn get_devices(custom_path: Option<String>) -> serde_json::Value {
     let adb_path = get_binary_path("adb", custom_path);
-    
+
     let output = create_command(&adb_path)
         .arg("devices")
+        .arg("-l")
         .output()
         .await;
 
@@ -183,11 +221,11 @@ pub async fn get_devices(custom_path: Option<String>) -> serde_json::Value {
                  let out_str = String::from_utf8_lossy(&o.stdout);
                  let devices: Vec<String> = out_str.lines()
                     .skip(1) // Skip "List of devices attached"
-                    .filter(|l| l.contains("\tdevice"))
-                    .map(|l| l.split('\t').next().unwrap_or("").trim().to_string())
-                    .filter(|s| !s.is_empty() && !s.contains("._tcp") && !s.contains("._udp"))
+                    .filter_map(parse_adb_device_line)
+                    .filter(|(_, state)| state == "device")
+                    .map(|(serial, _)| serial)
                     .collect();
-                 
+
                  json!({ "error": false, "devices": devices })
              } else {
                  json!({ "error": true, "message": "ADB returned error" })
@@ -244,10 +282,13 @@ pub async fn get_mdns_devices(custom_path: Option<String>) -> serde_json::Value 
 }
 
 #[tauri::command]
-pub async fn adb_connect(window: Window, ip: String, custom_path: Option<String>) -> Result<serde_json::Value, String> {
+pub async fn adb_connect(window: Window, ip: String, custom_path: Option<String>, silent: Option<bool>) -> Result<serde_json::Value, String> {
+    let silent = silent.unwrap_or(false);
     let adb_path = get_binary_path("adb", custom_path);
-    let _ = window.emit("scrcpy-log", format!("[SYSTEM] Attempting wireless connection to {}...", ip));
-    
+    if !silent {
+        let _ = window.emit("scrcpy-log", format!("[SYSTEM] Attempting wireless connection to {}...", ip));
+    }
+
     let child = create_command(&adb_path)
         .arg("connect")
         .arg(&ip)
@@ -263,17 +304,21 @@ pub async fn adb_connect(window: Window, ip: String, custom_path: Option<String>
         Ok(Ok(output)) => {
             let out_text = String::from_utf8_lossy(&output.stdout).trim().to_string();
             let err_text = String::from_utf8_lossy(&output.stderr).trim().to_string();
-            
-            // Log everything to terminal for visibility
-            if !out_text.is_empty() { let _ = window.emit("scrcpy-log", format!("[ADB] {}", out_text)); }
-            if !err_text.is_empty() { let _ = window.emit("scrcpy-log", format!("[ADB ERROR] {}", err_text)); }
+
+            if !silent {
+                // Log everything to terminal for visibility
+                if !out_text.is_empty() { let _ = window.emit("scrcpy-log", format!("[ADB] {}", out_text)); }
+                if !err_text.is_empty() { let _ = window.emit("scrcpy-log", format!("[ADB ERROR] {}", err_text)); }
+            }
 
             let success = output.status.success() && !out_text.contains("cannot connect") && !out_text.contains("failed");
             Ok(json!({ "success": success, "message": if out_text.is_empty() { err_text } else { out_text } }))
         }
         Ok(Err(e)) => Err(e.to_string()),
         Err(_) => {
-            let _ = window.emit("scrcpy-log", format!("[SYSTEM] Connection to {} timed out after 5s.", ip));
+            if !silent {
+                let _ = window.emit("scrcpy-log", format!("[SYSTEM] Connection to {} timed out after 5s.", ip));
+            }
             Ok(json!({ "success": false, "message": "connection timed out" }))
         }
     }
@@ -675,6 +720,15 @@ pub struct ScrcpyConfig {
     background_color: Option<String>,
     keep_active: Option<bool>,
     shortcut_mod: Option<String>,
+    /// Force SDL renderer VSync on/off (anti-tearing). scrcpy 4.0 (SDL3)
+    /// disables renderer VSync by default; this re-asserts it via the SDL hint.
+    vsync: Option<bool>,
+    /// Last known screen position of the scrcpy mirror window. Captured (client
+    /// area top-left) while a windowed session runs and restored via
+    /// --window-x / --window-y on the next launch, so the window reopens where
+    /// the user left it, including when relaunching borderless.
+    window_x: Option<i32>,
+    window_y: Option<i32>,
 }
 
 /// Maps a modifier name to the scrcpy flag value that accepts both left and right variants.
@@ -726,6 +780,339 @@ fn resolve_audio_codec_flag<'a>(config: &'a ScrcpyConfig, audio_codec_override: 
             Some(trimmed)
         }
     })
+}
+
+/// Parses `KEY=value` shell output (as printed by `xdotool ... --shell`) and
+/// returns the integer value for `key`. Only compiled where it is used (the
+/// Linux capture path, and the unit tests).
+#[cfg(any(test, target_os = "linux"))]
+fn parse_shell_var_int(text: &str, key: &str) -> Option<i32> {
+    let prefix = format!("{}=", key);
+    text.lines()
+        .find(|l| l.starts_with(&prefix))
+        .and_then(|l| l[prefix.len()..].trim().parse().ok())
+}
+
+/// Windows: finds the first visible, unowned top-level window belonging to
+/// process `pid` (matches .NET's `MainWindowHandle` heuristic), i.e. scrcpy's
+/// SDL mirror window rather than some owned tool/popup window. Shared by the
+/// position-capture and recenter paths so both agree on which window they
+/// mean.
+#[cfg(target_os = "windows")]
+fn find_window_by_pid(pid: u32) -> Option<windows::Win32::Foundation::HWND> {
+    use windows::core::BOOL;
+    use windows::Win32::Foundation::{HWND, LPARAM};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        EnumWindows, GetWindow, GetWindowThreadProcessId, IsWindowVisible, GW_OWNER,
+    };
+
+    // State threaded through EnumWindows via LPARAM.
+    struct Search {
+        target_pid: u32,
+        found: HWND,
+    }
+
+    // WNDENUMPROC: BOOL(1) keeps enumerating, BOOL(0) stops.
+    unsafe extern "system" fn enum_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
+        let search = &mut *(lparam.0 as *mut Search);
+        if !IsWindowVisible(hwnd).as_bool() {
+            return BOOL(1);
+        }
+        if GetWindow(hwnd, GW_OWNER).map(|o| !o.0.is_null()).unwrap_or(false) {
+            return BOOL(1);
+        }
+        let mut wnd_pid: u32 = 0;
+        let _ = GetWindowThreadProcessId(hwnd, Some(&mut wnd_pid as *mut u32));
+        if wnd_pid == search.target_pid {
+            search.found = hwnd;
+            return BOOL(0); // found it -> stop enumeration
+        }
+        BOOL(1)
+    }
+
+    let mut search = Search {
+        target_pid: pid,
+        found: HWND::default(),
+    };
+    // EnumWindows returns Err both on real failure and when the callback
+    // returns BOOL(0) (our intentional early stop), so ignore the Result and
+    // read the captured handle instead.
+    unsafe {
+        let _ = EnumWindows(Some(enum_proc), LPARAM(&mut search as *mut Search as isize));
+    }
+    (!search.found.0.is_null()).then_some(search.found)
+}
+
+/// Queries the on-screen position of the scrcpy SDL window owned by process
+/// `pid`, returning the client-area top-left in screen pixels. Returns `None`
+/// silently whenever the window can't be read (not created yet, minimized,
+/// tooling missing, permission denied); every failure mode is non-fatal.
+///
+/// The reference frame differs per platform and is reconciled afterwards by
+/// [`resolve_window_pos_to_persist`], rather than by hardcoding decoration
+/// sizes:
+/// - Windows: Win32 `ClientToScreen` -> client origin (matches scrcpy/SDL).
+/// - Linux/X11 (+XWayland): `xdotool` -> window origin (usually the client area).
+/// - macOS: `osascript`/System Events -> frame origin (title-bar top).
+fn try_capture_window_pos(pid: u32) -> Option<(i32, i32)> {
+    #[cfg(target_os = "windows")]
+    {
+        // Native Win32: this replaces spawning PowerShell + `Add-Type` (a C#
+        // JIT) on every poll, it is a couple of direct syscalls with no child
+        // process.
+        use windows::Win32::Foundation::POINT;
+        use windows::Win32::Graphics::Gdi::ClientToScreen;
+        use windows::Win32::UI::WindowsAndMessaging::{IsIconic, IsZoomed};
+
+        if let Some(hwnd) = find_window_by_pid(pid) {
+            // A minimized window reports an off-screen sentinel origin
+            // (~ -32000,-32000) and a maximized one the monitor edge; neither is
+            // the windowed position we want, so skip them and keep the last good
+            // sample.
+            let special = unsafe { IsIconic(hwnd).as_bool() || IsZoomed(hwnd).as_bool() };
+            if !special {
+                // ClientToScreen maps the client-area origin (0,0) into screen
+                // pixels; GetWindowRect would return the outer frame and creep
+                // the window up by the title-bar height on every relaunch.
+                let mut pt = POINT { x: 0, y: 0 };
+                if unsafe { ClientToScreen(hwnd, &mut pt) }.as_bool() {
+                    return Some((pt.x, pt.y));
+                }
+            }
+        }
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let pid_str = pid.to_string();
+        let output = StdCommand::new("xdotool")
+            .args(["search", "--pid", &pid_str, "getwindowgeometry", "--shell"])
+            .output()
+            .ok()?;
+        if output.status.success() {
+            let text = String::from_utf8_lossy(&output.stdout);
+            let x = parse_shell_var_int(&text, "X")?;
+            let y = parse_shell_var_int(&text, "Y")?;
+            return Some((x, y));
+        }
+    }
+    #[cfg(target_os = "macos")]
+    {
+        // System Events needs Accessibility permission for the app (one-time
+        // grant in System Settings). The try block swallows every error (no
+        // window yet, permission denied, ...) so this stays a silent no-op
+        // until the permission is granted.
+        let script = format!(
+            concat!(
+                "tell application \"System Events\"\n",
+                "try\n",
+                "set proc to first process whose unix id is {}\n",
+                "set pos to position of first window of proc\n",
+                "((item 1 of pos) as string) & \" \" & ((item 2 of pos) as string)\n",
+                "end try\n",
+                "end tell"
+            ),
+            pid
+        );
+        let output = StdCommand::new("osascript")
+            .args(["-e", &script])
+            .output()
+            .ok()?;
+        if output.status.success() {
+            let text = String::from_utf8_lossy(&output.stdout);
+            let mut parts = text.split_whitespace();
+            let x: i32 = parts.next()?.parse().ok()?;
+            let y: i32 = parts.next()?.parse().ok()?;
+            return Some((x, y));
+        }
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    let _ = pid;
+    None
+}
+
+/// Moves the scrcpy mirror window owned by `pid` to the centre of the primary
+/// screen and brings it to the front. A safety net for a persisted position
+/// that no longer lands on any connected monitor (e.g. it was saved while a
+/// second monitor was attached, which has since been unplugged) -- the window
+/// can reopen fully off-screen, with no title bar to drag back if borderless.
+/// Best-effort and silent: does nothing if the window can't be found, is
+/// already maximized (it fills its monitor; there is nothing to recover), or
+/// the move fails.
+fn recenter_window(pid: u32) {
+    #[cfg(target_os = "windows")]
+    {
+        use windows::Win32::Foundation::RECT;
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetSystemMetrics, GetWindowRect, IsIconic, IsZoomed, SetForegroundWindow,
+            SetWindowPos, ShowWindow, SM_CXSCREEN, SM_CYSCREEN, SWP_NOSIZE, SWP_NOZORDER,
+            SW_RESTORE,
+        };
+
+        let Some(hwnd) = find_window_by_pid(pid) else {
+            return;
+        };
+        if unsafe { IsZoomed(hwnd) }.as_bool() {
+            return;
+        }
+        if unsafe { IsIconic(hwnd) }.as_bool() {
+            let _ = unsafe { ShowWindow(hwnd, SW_RESTORE) };
+        }
+        let mut rect = RECT::default();
+        if unsafe { GetWindowRect(hwnd, &mut rect) }.is_err() {
+            return;
+        }
+        let (w, h) = (rect.right - rect.left, rect.bottom - rect.top);
+        let (screen_w, screen_h) =
+            unsafe { (GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN)) };
+        let _ = unsafe {
+            SetWindowPos(
+                hwnd,
+                None,
+                (screen_w - w) / 2,
+                (screen_h - h) / 2,
+                0,
+                0,
+                SWP_NOSIZE | SWP_NOZORDER,
+            )
+        };
+        let _ = unsafe { SetForegroundWindow(hwnd) };
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let pid_str = pid.to_string();
+        let Ok(search_out) = StdCommand::new("xdotool").args(["search", "--pid", &pid_str]).output() else {
+            return;
+        };
+        let Some(window_id) = String::from_utf8_lossy(&search_out.stdout).lines().next().map(str::to_string) else {
+            return;
+        };
+
+        let Ok(geom_out) = StdCommand::new("xdotool")
+            .args(["getwindowgeometry", "--shell", &window_id])
+            .output()
+        else {
+            return;
+        };
+        let geom_text = String::from_utf8_lossy(&geom_out.stdout);
+        let (Some(w), Some(h)) = (
+            parse_shell_var_int(&geom_text, "WIDTH"),
+            parse_shell_var_int(&geom_text, "HEIGHT"),
+        ) else {
+            return;
+        };
+
+        let Ok(display_out) = StdCommand::new("xdotool").arg("getdisplaygeometry").output() else {
+            return;
+        };
+        let display_text = String::from_utf8_lossy(&display_out.stdout);
+        let mut parts = display_text.split_whitespace();
+        let (Some(Ok(screen_w)), Some(Ok(screen_h))) = (
+            parts.next().map(str::parse::<i32>),
+            parts.next().map(str::parse::<i32>),
+        ) else {
+            return;
+        };
+
+        let x = ((screen_w - w).max(0) / 2).to_string();
+        let y = ((screen_h - h).max(0) / 2).to_string();
+        let _ = StdCommand::new("xdotool").args(["windowmove", &window_id, &x, &y]).output();
+        let _ = StdCommand::new("xdotool").args(["windowactivate", &window_id]).output();
+    }
+    #[cfg(target_os = "macos")]
+    {
+        // Same Accessibility-permission requirement as the position capture
+        // above; a silent no-op until it is granted.
+        let script = format!(
+            concat!(
+                "tell application \"System Events\"\n",
+                "try\n",
+                "set proc to first process whose unix id is {}\n",
+                "set win to first window of proc\n",
+                "set {{winW, winH}} to size of win\n",
+                "tell application \"Finder\" to set screenBounds to bounds of window of desktop\n",
+                "set screenW to (item 3 of screenBounds)\n",
+                "set screenH to (item 4 of screenBounds)\n",
+                "set position of win to {{((screenW - winW) / 2), ((screenH - winH) / 2)}}\n",
+                "set frontmost of proc to true\n",
+                "end try\n",
+                "end tell"
+            ),
+            pid
+        );
+        let _ = StdCommand::new("osascript").args(["-e", &script]).output();
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+    let _ = pid;
+}
+
+/// Re-centres the running mirror window for `device` on the primary screen.
+/// Bound to a global OS shortcut (Ctrl+Alt+Shift+C, see `shortcuts.rs`) so a
+/// window whose saved position ends up off-screen (see [`recenter_window`])
+/// can be recovered without being able to see or focus it directly. A no-op
+/// if `device` has no tracked process (e.g. nothing is running).
+pub fn recenter_device(state: &ScrcpyState, device: &str) {
+    let pid = state.processes.lock().unwrap().get(device).and_then(|c| c.id());
+    if let Some(pid) = pid {
+        recenter_window(pid);
+    }
+}
+
+#[tauri::command]
+pub fn recenter_scrcpy_window(state: State<'_, ScrcpyState>, device: String) -> Result<(), String> {
+    recenter_device(&state, &device);
+    Ok(())
+}
+
+/// Records which device the GUI currently considers selected, so the global
+/// recentre shortcut (which fires with no window necessarily focused) knows
+/// which mirror window to act on.
+#[tauri::command]
+pub fn set_active_device(state: State<'_, ScrcpyState>, device: Option<String>) -> Result<(), String> {
+    *state.active_device.lock().unwrap() = device;
+    Ok(())
+}
+
+/// Converts a raw captured position into the value to persist as
+/// --window-x/--window-y so the window round-trips exactly on the next launch.
+///
+/// [`try_capture_window_pos`] reports coordinates in each OS tool's native
+/// frame, which may differ from scrcpy's own (SDL) reference by the window
+/// decorations, a difference that varies by platform, window manager, theme
+/// and SDL version. Instead of hardcoding decoration sizes we learn the offset
+/// live: when we launched at an explicit position (`requested`), the delta
+/// between it and the *first* sample (`first`, taken before the user can move
+/// the window) is the decoration offset; subtracting it from the last sample
+/// yields a value that round-trips. Offsets larger than any plausible window
+/// decoration are ignored (the window was moved before the first sample, or was
+/// placed by the WM), falling back to the raw `last` position.
+fn resolve_window_pos_to_persist(
+    requested: Option<(i32, i32)>,
+    first: Option<(i32, i32)>,
+    last: (i32, i32),
+) -> (i32, i32) {
+    if let (Some((rx, ry)), Some((fx, fy))) = (requested, first) {
+        let (dx, dy) = (fx - rx, fy - ry);
+        if dx.abs() <= 80 && dy.abs() <= 120 {
+            return (last.0 - dx, last.1 - dy);
+        }
+    }
+    last
+}
+
+/// Emits the resolved window position (when one was captured) followed by the
+/// session-stopped status. Shared by every monitor-loop exit path.
+fn emit_window_pos_and_stop(
+    window: &Window,
+    device: &str,
+    requested: Option<(i32, i32)>,
+    first: Option<(i32, i32)>,
+    last: Option<(i32, i32)>,
+) {
+    if let Some(last) = last {
+        let (x, y) = resolve_window_pos_to_persist(requested, first, last);
+        let _ = window.emit("scrcpy-window-pos", json!({ "device": device, "x": x, "y": y }));
+    }
+    let _ = window.emit("scrcpy-status", json!({ "device": device, "running": false }));
 }
 
 fn build_scrcpy_args(config: &ScrcpyConfig, video_dir_fallback: Option<String>, audio_codec_override: Option<&str>) -> Vec<String> {
@@ -786,6 +1173,19 @@ fn build_scrcpy_args(config: &ScrcpyConfig, video_dir_fallback: Option<String>, 
         if let Some(aot) = config.always_on_top { if aot { args.push("--always-on-top".to_string()); } }
         if let Some(fs) = config.fullscreen { if fs { args.push("--fullscreen".to_string()); } }
         if let Some(bl) = config.borderless { if bl { args.push("--window-borderless".to_string()); } }
+
+        // Restore the last saved window position (client-area origin), for
+        // mirror sessions only. Skipped in fullscreen (scrcpy ignores it) and
+        // for camera/desktop, whose windows must not share, or overwrite, the
+        // mirror window's remembered position.
+        if config.session_mode == "mirror" && !config.fullscreen.unwrap_or(false) {
+            if let Some(wx) = config.window_x {
+                args.push(format!("--window-x={}", wx));
+            }
+            if let Some(wy) = config.window_y {
+                args.push(format!("--window-y={}", wy));
+            }
+        }
         
         if let Some(rot) = &config.rotation {
             if rot != "0" {
@@ -914,6 +1314,7 @@ async fn spawn_scrcpy_streams(
     adb_exe_path: &str,
     server_path: Option<&str>,
     args: &[String],
+    vsync: bool,
 ) -> Result<(tokio::process::Child, Arc<AtomicBool>), String> {
     let command_str = format!("> scrcpy {}", args.join(" "));
     let _ = window.emit("scrcpy-log", command_str);
@@ -926,6 +1327,12 @@ async fn spawn_scrcpy_streams(
             command.env("SCRCPY_SERVER_PATH", sp);
         }
     }
+    // scrcpy 4.0 migrated from SDL2 to SDL3, which leaves the renderer's VSync
+    // disabled by default and reintroduced screen tearing for users who had
+    // none on scrcpy 3.x (SDL2). Re-assert VSync through SDL's hint env var so
+    // the renderer syncs to the display refresh; "0" lets the user opt out
+    // (slightly lower input latency) via the in-app toggle.
+    command.env("SDL_RENDER_VSYNC", if vsync { "1" } else { "0" });
     command.stdout(Stdio::piped());
     command.stderr(Stdio::piped());
 
@@ -1063,8 +1470,10 @@ pub async fn run_scrcpy(window: Window, state: State<'_, ScrcpyState>, config: S
         &adb_exe_path,
         server_path.as_deref(),
         &initial_args,
+        config.vsync.unwrap_or(true),
     ).await?;
 
+    let initial_scrcpy_pid = child.id();
     state.processes.lock().unwrap().insert(config.device.clone(), child);
     let _ = window.emit("scrcpy-status", json!({ "device": config.device, "running": true }));
 
@@ -1078,12 +1487,48 @@ pub async fn run_scrcpy(window: Window, state: State<'_, ScrcpyState>, config: S
     let server_path_mon = server_path;
     let config_mon = config.clone();
 
+    // Position we asked scrcpy to open at this launch (if any). Used to learn
+    // the decoration offset so the saved position round-trips exactly. See
+    // resolve_window_pos_to_persist.
+    let requested_pos: Option<(i32, i32)> = match (config_mon.window_x, config_mon.window_y) {
+        (Some(x), Some(y)) => Some((x, y)),
+        _ => None,
+    };
+    // Only track and persist the position for windowed mirror sessions. A
+    // fullscreen session has no meaningful position (it would report the
+    // monitor origin, e.g. 0,0), and camera/desktop sessions must not overwrite
+    // the mirror window's remembered position.
+    let track_pos = config_mon.session_mode == "mirror" && !config_mon.fullscreen.unwrap_or(false);
+
     tokio::spawn(async move {
         let mut current_audio_flag = audio_error_flag;
         let mut chain_index: usize = 0;
+        let mut current_scrcpy_pid = initial_scrcpy_pid;
+        let mut first_window_pos: Option<(i32, i32)> = None;
+        let mut last_window_pos: Option<(i32, i32)> = None;
 
         loop {
             tokio::time::sleep(Duration::from_millis(500)).await;
+
+            // Sample the live window position on every tick. This is the only
+            // path that can catch a move made right before the user closes the
+            // mirror window itself (rather than through stop_scrcpy, which
+            // grabs its own guaranteed-fresh sample): SDL destroys the window
+            // before the process exits, so by the time that exit is detected
+            // below the position is unreadable, and this periodic sample is
+            // all that is left to persist. Sampling every tick instead of
+            // every few seconds keeps that worst case down to ~500ms stale
+            // instead of several seconds.
+            if track_pos {
+                if let Some(pid) = current_scrcpy_pid {
+                    if let Some(pos) = try_capture_window_pos(pid) {
+                        if first_window_pos.is_none() {
+                            first_window_pos = Some(pos);
+                        }
+                        last_window_pos = Some(pos);
+                    }
+                }
+            }
 
             let outcome = {
                 let state_mon = app_handle_mon.state::<ScrcpyState>();
@@ -1112,11 +1557,22 @@ pub async fn run_scrcpy(window: Window, state: State<'_, ScrcpyState>, config: S
             match outcome {
                 AttemptOutcome::WaitError(e) => {
                     let _ = window_mon.emit("scrcpy-log", format!("[SYSTEM] Error waiting for scrcpy: {}", e));
-                    let _ = window_mon.emit("scrcpy-status", json!({ "device": device_mon, "running": false }));
+                    emit_window_pos_and_stop(&window_mon, &device_mon, requested_pos, first_window_pos, last_window_pos);
                     break;
                 }
                 AttemptOutcome::UserStopped => {
-                    let _ = window_mon.emit("scrcpy-status", json!({ "device": device_mon, "running": false }));
+                    // stop_scrcpy grabs one last, guaranteed-fresh sample right
+                    // before killing the process -- prefer it over our own
+                    // periodic sample, which can be up to ~3s stale if the
+                    // window was moved and closed in the same breath.
+                    let fresh_pos = app_handle_mon
+                        .state::<ScrcpyState>()
+                        .final_capture_hint
+                        .lock()
+                        .unwrap()
+                        .remove(&device_mon);
+                    let pos_to_persist = fresh_pos.or(last_window_pos);
+                    emit_window_pos_and_stop(&window_mon, &device_mon, requested_pos, first_window_pos, pos_to_persist);
                     break;
                 }
                 AttemptOutcome::Exited(status) => {
@@ -1143,8 +1599,18 @@ pub async fn run_scrcpy(window: Window, state: State<'_, ScrcpyState>, config: S
                             &adb_exe_path_mon,
                             server_path_mon.as_deref(),
                             &new_args,
+                            config_mon.vsync.unwrap_or(true),
                         ).await {
                             Ok((new_child, new_flag)) => {
+                                current_scrcpy_pid = new_child.id();
+                                // New window: re-learn its decoration offset by
+                                // resampling this attempt from scratch. Clear the
+                                // last sample too, so we never persist the old
+                                // window's position with the new (unlearned)
+                                // offset if this attempt closes before its first
+                                // sample.
+                                first_window_pos = None;
+                                last_window_pos = None;
                                 let state_mon = app_handle_mon.state::<ScrcpyState>();
                                 state_mon.processes.lock().unwrap().insert(device_mon.clone(), new_child);
                                 current_audio_flag = new_flag;
@@ -1153,7 +1619,7 @@ pub async fn run_scrcpy(window: Window, state: State<'_, ScrcpyState>, config: S
                             }
                             Err(e) => {
                                 let _ = window_mon.emit("scrcpy-log", format!("[SYSTEM] Failed to spawn retry: {}", e));
-                                let _ = window_mon.emit("scrcpy-status", json!({ "device": device_mon, "running": false }));
+                                emit_window_pos_and_stop(&window_mon, &device_mon, requested_pos, first_window_pos, last_window_pos);
                                 break;
                             }
                         }
@@ -1162,10 +1628,10 @@ pub async fn run_scrcpy(window: Window, state: State<'_, ScrcpyState>, config: S
                             "scrcpy-log",
                             "[SYSTEM] No compatible audio codec found. Consider disabling audio forwarding.".to_string(),
                         );
-                        let _ = window_mon.emit("scrcpy-status", json!({ "device": device_mon, "running": false }));
+                        emit_window_pos_and_stop(&window_mon, &device_mon, requested_pos, first_window_pos, last_window_pos);
                         break;
                     } else {
-                        let _ = window_mon.emit("scrcpy-status", json!({ "device": device_mon, "running": false }));
+                        emit_window_pos_and_stop(&window_mon, &device_mon, requested_pos, first_window_pos, last_window_pos);
                         break;
                     }
                 }
@@ -1216,6 +1682,9 @@ mod tests {
             background_color: None,
             keep_active: None,
             shortcut_mod: None,
+            vsync: None,
+            window_x: None,
+            window_y: None,
         }
     }
 
@@ -1310,6 +1779,223 @@ mod tests {
         assert!(!is_audio_codec_error("permission issue"));
         assert!(!is_audio_codec_error("INFO Audio codec selected: opus"));
     }
+
+    #[test]
+    fn test_build_scrcpy_args_window_position() {
+        let mut config = base_config("mirror");
+        config.window_x = Some(100);
+        config.window_y = Some(200);
+        let args = build_scrcpy_args(&config, None, None);
+        assert!(args.contains(&"--window-x=100".to_string()));
+        assert!(args.contains(&"--window-y=200".to_string()));
+    }
+
+    #[test]
+    fn test_build_scrcpy_args_window_position_negative_coords() {
+        // Multi-monitor: a display left of / above the primary yields negative
+        // coordinates, which scrcpy accepts.
+        let mut config = base_config("mirror");
+        config.window_x = Some(-1920);
+        config.window_y = Some(0);
+        let args = build_scrcpy_args(&config, None, None);
+        assert!(args.contains(&"--window-x=-1920".to_string()));
+        assert!(args.contains(&"--window-y=0".to_string()));
+    }
+
+    #[test]
+    fn test_build_scrcpy_args_window_position_skipped_in_fullscreen() {
+        let mut config = base_config("mirror");
+        config.window_x = Some(100);
+        config.window_y = Some(200);
+        config.fullscreen = Some(true);
+        let args = build_scrcpy_args(&config, None, None);
+        assert!(!args.iter().any(|a| a.starts_with("--window-x")));
+        assert!(!args.iter().any(|a| a.starts_with("--window-y")));
+    }
+
+    #[test]
+    fn test_build_scrcpy_args_window_position_only_mirror() {
+        // Camera (and desktop) sessions must not receive the mirror window's
+        // remembered position, it is scoped to mirror mode.
+        let mut config = base_config("camera");
+        config.window_x = Some(100);
+        config.window_y = Some(200);
+        let args = build_scrcpy_args(&config, None, None);
+        assert!(!args.iter().any(|a| a.starts_with("--window-x")));
+        assert!(!args.iter().any(|a| a.starts_with("--window-y")));
+    }
+
+    #[test]
+    fn test_parse_shell_var_int() {
+        let text = "WINDOW=12345\nX=959\nY=24\nWIDTH=428\nHEIGHT=928\n";
+        assert_eq!(parse_shell_var_int(text, "X"), Some(959));
+        assert_eq!(parse_shell_var_int(text, "Y"), Some(24));
+        assert_eq!(parse_shell_var_int(text, "MISSING"), None);
+    }
+
+    #[test]
+    fn test_resolve_window_pos_first_launch_uses_raw() {
+        // First launch ever (nothing requested): persist the raw last sample.
+        assert_eq!(
+            resolve_window_pos_to_persist(None, Some((100, 72)), (300, 222)),
+            (300, 222)
+        );
+        assert_eq!(
+            resolve_window_pos_to_persist(None, None, (300, 222)),
+            (300, 222)
+        );
+    }
+
+    #[test]
+    fn test_resolve_window_pos_zero_offset_is_noop() {
+        // Windows/Linux: the tool already reports the client origin, so the
+        // first sample matches what we requested -> offset 0 -> last unchanged.
+        let requested = Some((100, 100));
+        let first = Some((100, 100));
+        assert_eq!(
+            resolve_window_pos_to_persist(requested, first, (640, 480)),
+            (640, 480)
+        );
+    }
+
+    #[test]
+    fn test_resolve_window_pos_cancels_titlebar_offset() {
+        // macOS-like: the tool reports the frame origin (title-bar top), 28 px
+        // above the client origin scrcpy positions. Requested (100,100) but
+        // first observed (100,72); the -28 px offset must be cancelled so the
+        // persisted value maps back to the client origin.
+        let requested = Some((100, 100));
+        let first = Some((100, 72));
+        assert_eq!(
+            resolve_window_pos_to_persist(requested, first, (300, 222)),
+            (300, 250)
+        );
+    }
+
+    #[test]
+    fn test_resolve_window_pos_cancels_full_frame_offset() {
+        // Frame offset on both axes (border + title bar).
+        let requested = Some((100, 100));
+        let first = Some((92, 69));
+        assert_eq!(
+            resolve_window_pos_to_persist(requested, first, (292, 219)),
+            (300, 250)
+        );
+    }
+
+    #[test]
+    fn test_resolve_window_pos_ignores_implausible_offset() {
+        // The window was moved before the first sample (or placed by the WM):
+        // the offset dwarfs any window decoration, so fall back to the raw last.
+        let requested = Some((100, 100));
+        let first = Some((900, 700));
+        assert_eq!(
+            resolve_window_pos_to_persist(requested, first, (950, 760)),
+            (950, 760)
+        );
+    }
+
+    #[test]
+    fn test_parse_adb_device_line_usb_serial() {
+        assert_eq!(
+            parse_adb_device_line("ZY22MGW35T device"),
+            Some(("ZY22MGW35T".to_string(), "device".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_parse_adb_device_line_tcpip_serial() {
+        assert_eq!(
+            parse_adb_device_line("192.168.1.50:5555 device"),
+            Some(("192.168.1.50:5555".to_string(), "device".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_parse_adb_device_line_mdns_serial() {
+        assert_eq!(
+            parse_adb_device_line("adb-ZY22MGW35T-Z3uXXq._adb-tls-connect._tcp device"),
+            Some((
+                "adb-ZY22MGW35T-Z3uXXq._adb-tls-connect._tcp".to_string(),
+                "device".to_string()
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_adb_device_line_mdns_conflict_serial_with_space() {
+        // mDNS conflict resolution appends " (2)" inside the serial itself, so
+        // the line has a space that is NOT the serial/state separator.
+        assert_eq!(
+            parse_adb_device_line("adb-ZY22MGW35T-Z3uXXq (2)._adb-tls-connect._tcp device"),
+            Some((
+                "adb-ZY22MGW35T-Z3uXXq (2)._adb-tls-connect._tcp".to_string(),
+                "device".to_string()
+            ))
+        );
+    }
+
+    #[test]
+    fn test_parse_adb_device_line_ignores_trailing_l_fields() {
+        // `adb devices -l` appends product/model/transport_id fields after the
+        // state; they must not affect the parsed serial or state.
+        assert_eq!(
+            parse_adb_device_line(
+                "ZY22MGW35T device usb:1-1 product:foo model:bar device:baz transport_id:1"
+            ),
+            Some(("ZY22MGW35T".to_string(), "device".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_parse_adb_device_line_offline_and_unauthorized() {
+        assert_eq!(
+            parse_adb_device_line("ZY22MGW35T offline"),
+            Some(("ZY22MGW35T".to_string(), "offline".to_string()))
+        );
+        assert_eq!(
+            parse_adb_device_line("192.168.1.50:5555 unauthorized"),
+            Some(("192.168.1.50:5555".to_string(), "unauthorized".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_parse_adb_device_line_unparsable_returns_none() {
+        assert_eq!(parse_adb_device_line(""), None);
+        assert_eq!(parse_adb_device_line("List of devices attached"), None);
+    }
+
+    #[test]
+    fn test_get_devices_filtering_keeps_only_device_state() {
+        // Mirrors the filter chain in get_devices: only the exact "device"
+        // state is kept, regardless of serial shape, including mDNS wireless
+        // debugging serials (._tcp/._udp) that must no longer be excluded.
+        let output = "List of devices attached\n\
+             ZY22MGW35T device usb:1-1 product:foo model:bar transport_id:1\n\
+             192.168.1.50:5555 device product:foo model:bar transport_id:2\n\
+             adb-ZY22MGW35T-Z3uXXq._adb-tls-connect._tcp device product:foo transport_id:3\n\
+             adb-ZY22MGW35T-Z3uXXq (2)._adb-tls-connect._tcp device product:foo transport_id:4\n\
+             emulator-5554 offline\n\
+             0123456789ABCDEF unauthorized\n";
+
+        let devices: Vec<String> = output
+            .lines()
+            .skip(1)
+            .filter_map(parse_adb_device_line)
+            .filter(|(_, state)| state == "device")
+            .map(|(serial, _)| serial)
+            .collect();
+
+        assert_eq!(
+            devices,
+            vec![
+                "ZY22MGW35T".to_string(),
+                "192.168.1.50:5555".to_string(),
+                "adb-ZY22MGW35T-Z3uXXq._adb-tls-connect._tcp".to_string(),
+                "adb-ZY22MGW35T-Z3uXXq (2)._adb-tls-connect._tcp".to_string(),
+            ]
+        );
+    }
 }
 
 #[tauri::command]
@@ -1321,6 +2007,15 @@ pub async fn stop_scrcpy(state: State<'_, ScrcpyState>, device: String) -> Resul
 
     if let Some(mut c) = child {
         if let Some(pid) = c.id() {
+             // Grab the window's position now, one last time, before it's
+             // killed: this is the only moment it's guaranteed to still be
+             // exactly where the user left it. The run_scrcpy monitor loop
+             // only refreshes its own sample every ~3s, so stopping right
+             // after a move could otherwise persist a stale, pre-move spot.
+             if let Some(pos) = try_capture_window_pos(pid) {
+                 state.final_capture_hint.lock().unwrap().insert(device.clone(), pos);
+             }
+
              #[cfg(target_os = "windows")]
              {
                 let _ = StdCommand::new("taskkill")
@@ -1328,7 +2023,7 @@ pub async fn stop_scrcpy(state: State<'_, ScrcpyState>, device: String) -> Resul
                     .creation_flags(CREATE_NO_WINDOW)
                     .output();
              }
-             
+
              #[cfg(not(target_os = "windows"))]
              {
                  // Try graceful termination first via SIGTERM

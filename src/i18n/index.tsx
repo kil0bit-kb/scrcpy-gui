@@ -6,10 +6,10 @@ import { zhCN } from './locales/zh-CN';
 import { zhTW } from './locales/zh-TW';
 import { ru } from './locales/ru';
 import { id } from './locales/id';
+import { ar } from './locales/ar';
 
-
-export type Locale = 'en' | 'fr' | 'pt-BR' | 'zh-CN' | 'zh-TW' | 'ru' | 'id';
-export const SUPPORTED_LOCALES: Locale[] = ['en', 'fr', 'pt-BR', 'zh-CN', 'zh-TW', 'ru', 'id'];
+export type Locale = 'en' | 'fr' | 'pt-BR' | 'zh-CN' | 'zh-TW' | 'ru' | 'id' | 'ar';
+export const SUPPORTED_LOCALES: Locale[] = ['en', 'fr', 'pt-BR', 'zh-CN', 'zh-TW', 'ru', 'id', 'ar'];
 const STORAGE_KEY = 'scrcpy_locale';
 const localeBundles: Record<Locale, Translations> = {
     en,
@@ -18,7 +18,8 @@ const localeBundles: Record<Locale, Translations> = {
     'zh-CN': zhCN,
     'zh-TW': zhTW,
     ru,
-    id
+    id,
+    ar
 };
 
 type Primitive = string | number | boolean;
@@ -85,6 +86,7 @@ function detectInitialLocale(): Locale {
         if (lower.startsWith('ru')) return 'ru';
         if (lower.startsWith('fr')) return 'fr';
         if (lower.startsWith('id')) return 'id';
+        if (lower.startsWith('ar')) return 'ar';
         if (lower.startsWith('en')) return 'en';
     }
 
@@ -139,16 +141,21 @@ interface I18nProviderProps {
 export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
     const [locale, setLocaleState] = useState<Locale>(() => initialLocale ?? detectInitialLocale());
 
-    useEffect(() => {
-        try {
-            localStorage.setItem(STORAGE_KEY, locale);
-        } catch {
-            // ignore storage failures
-        }
-        if (typeof document !== 'undefined') {
-            document.documentElement.setAttribute('lang', locale);
-        }
-    }, [locale]);
+   useEffect(() => {
+    try {
+        localStorage.setItem(STORAGE_KEY, locale);
+    } catch {
+        // ignore storage failures
+    }
+
+    if (typeof document !== 'undefined') {
+        document.documentElement.setAttribute('lang', locale);
+        document.documentElement.setAttribute(
+            'dir',
+            locale === 'ar' ? 'rtl' : 'ltr'
+        );
+    }
+}, [locale]);
 
     const translations = useMemo<Translations>(() => {
         const safeLocale = SUPPORTED_LOCALES.includes(locale) ? locale : 'en';

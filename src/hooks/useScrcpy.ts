@@ -14,6 +14,24 @@ export interface RenderDriverSupport {
     supportedDrivers: RenderDriverOption[];
 }
 
+export interface MdnsDevice {
+    name: string;
+    service: string;
+    address: string;
+}
+
+/** Whether an mDNS-discovered device is already present in `devices`.
+ *  A device connected via a plain `adb connect ip:port` is tracked under that
+ *  same "ip:port" serial, but one already connected through wireless
+ *  debugging's mDNS pairing (e.g. paired via Android Studio, not through this
+ *  app) is tracked under its "adb-<name>._adb-tls-connect._tcp" serial
+ *  instead -- which never matches `dev.address`. Checking both forms is what
+ *  keeps an already-connected device from being listed a second time under
+ *  "Discovered Devices", or auto-(re)connected by IP. */
+export function isMdnsDeviceConnected(dev: MdnsDevice, devices: string[]): boolean {
+    return devices.includes(dev.address) || devices.some(d => d.includes(dev.name));
+}
+
 export interface ScrcpyConfig {
     device: string;
     sessionMode: string;
@@ -51,7 +69,23 @@ export interface ScrcpyConfig {
     backgroundColor?: string;
     keepActive?: boolean;
     shortcutMod?: string;
+    vsync?: boolean;
+    /** Whether to remember each device's mirror window position and restore
+     *  it on the next launch. Defaults to true; some users find a window
+     *  that always reopens at scrcpy's default spot less surprising. */
+    rememberWindowPosition?: boolean;
+    /** Screen position (pixels) to restore via --window-x / --window-y for
+     *  this launch. Resolved per-device from windowPositions right before
+     *  invoking run_scrcpy; never set directly by the UI. */
+    windowX?: number;
+    windowY?: number;
 }
+
+/** Last known screen position of the scrcpy window, per device serial. Keyed
+ *  by device because different devices (e.g. a phone vs. a tablet) produce
+ *  very differently sized windows: a single shared position would reopen an
+ *  unrelated device's window mostly off-screen. */
+type WindowPositions = Record<string, { x: number; y: number }>;
 
 export function useScrcpy() {
     const { t } = useI18n();
@@ -62,7 +96,6 @@ export function useScrcpy() {
     const [downloadProgress, setDownloadProgress] = useState<number>(0);
     const [isDownloading, setIsDownloading] = useState(false);
     const [scrcpyStatus, setScrcpyStatus] = useState<{ found: boolean, message: string }>({ found: false, message: t('common.loading') });
-    const [isAutoConnect, setIsAutoConnect] = useState<boolean>(true);
     const [isInitialized, setIsInitialized] = useState(false);
     const [runningDevices, setRunningDevices] = useState<string[]>([]);
     const [defaultRecordPath, setDefaultRecordPath] = useState<string>("");
@@ -74,7 +107,7 @@ export function useScrcpy() {
     });
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-    // Removed mdnsDevices state
+    const [mdnsDevices, setMdnsDevices] = useState<MdnsDevice[]>([]);
     const [theme, setTheme] = useState("ultraviolet");
     const [colorMode, setColorModeState] = useState<'light' | 'dark' | 'system'>(() => {
         try {
@@ -106,20 +139,29 @@ export function useScrcpy() {
         cameraTorch: false,
         cameraZoom: 1.0,
         backgroundColor: '',
-        keepActive: false
+        keepActive: false,
+        vsync: true,
+        rememberWindowPosition: true
     });
+    const [windowPositions, setWindowPositions] = useState<WindowPositions>({});
     const prevDevicesRef = useRef<string[]>([]);
+    const mdnsDevicesRef = useRef<MdnsDevice[]>([]);
+    const rememberWindowPositionRef = useRef(true);
 
     useEffect(() => {
-
-        const savedAuto = localStorage.getItem('scrcpy_auto_connect');
-        if (savedAuto !== null) {
-            setIsAutoConnect(savedAuto === 'true');
-        }
 
         const savedTheme = localStorage.getItem('scrcpy_theme');
         if (savedTheme) {
             setTheme(savedTheme);
+        }
+
+        const savedWindowPositions = localStorage.getItem('scrcpy_window_positions');
+        if (savedWindowPositions) {
+            try {
+                setWindowPositions(JSON.parse(savedWindowPositions));
+            } catch (e) {
+                console.error("Failed to parse saved window positions", e);
+            }
         }
 
         const savedConfig = localStorage.getItem('scrcpy_config');
@@ -170,6 +212,18 @@ export function useScrcpy() {
         localStorage.setItem('scrcpy_config', JSON.stringify(config));
     }, [config, isInitialized]);
 
+    // Kept in a ref (not read from `config` directly) so the window-position
+    // listener below, which only subscribes once on mount, always sees the
+    // current value without needing to resubscribe on every config change.
+    useEffect(() => {
+        rememberWindowPositionRef.current = config.rememberWindowPosition !== false;
+    }, [config.rememberWindowPosition]);
+
+    useEffect(() => {
+        if (!isInitialized) return;
+        localStorage.setItem('scrcpy_window_positions', JSON.stringify(windowPositions));
+    }, [windowPositions, isInitialized]);
+
     useEffect(() => {
         if (!isInitialized) return;
         localStorage.setItem('scrcpy_theme', theme);
@@ -203,11 +257,6 @@ export function useScrcpy() {
 
 
 
-    const toggleAutoConnect = (val: boolean) => {
-        setIsAutoConnect(val);
-        localStorage.setItem('scrcpy_auto_connect', val.toString());
-    };
-
     useEffect(() => {
         const unlistenLog = listen<string>('scrcpy-log', (event) => {
             const newLines = event.payload.split('\n');
@@ -232,14 +281,36 @@ export function useScrcpy() {
             } else if (data.type === 'download-complete') {
                 setIsDownloading(false);
                 setStatus(t('logs.downloadComplete'));
-                refreshDevices(data.message);
+                // adb didn't exist at all until this just finished, so the
+                // settle-poll from mount had nothing to find yet and gave up
+                // early -- this is the first real chance to detect anything,
+                // and a single refresh can still miss a device that's mid
+                // reconnect, same as at mount or right after pairing.
+                refreshDevicesUntilSettled(data.message);
                 checkScrcpy(); // Re-check binary status
             }
         });
 
+        // Persist the scrcpy window position emitted when a session ends, so the
+        // next launch restores it (via --window-x / --window-y). This is what
+        // lets a borderless window, which cannot be dragged, reopen where the
+        // user placed it with borders. Keyed by device (not stored on the
+        // shared config): different devices produce very differently sized
+        // windows (e.g. a phone vs. a tablet), so a single shared position
+        // would reopen an unrelated device's window mostly off-screen.
+        const unlistenWindowPos = listen<{ device: string; x: number; y: number }>(
+            'scrcpy-window-pos',
+            (event) => {
+                if (!rememberWindowPositionRef.current) return;
+                const { device, x, y } = event.payload;
+                setWindowPositions(prev => ({ ...prev, [device]: { x, y } }));
+            }
+        );
+
         return () => {
             unlistenLog.then(f => f());
             unlistenStatus.then(f => f());
+            unlistenWindowPos.then(f => f());
         };
     }, [t]);
 
@@ -271,14 +342,18 @@ export function useScrcpy() {
         localStorage.removeItem('scrcpy_history');
     };
 
-    const refreshDevices = async (customPath?: string, silent: boolean = false) => {
-        if (isRefreshing) return;
-        setIsRefreshing(true);
+    // Does the actual device + mDNS fetch. Split out from `refreshDevices` so
+    // `refreshDevicesUntilSettled` can drive several of these back to back
+    // under one continuous "syncing" state, instead of the isRefreshing flag
+    // (and the "Syncing..." label bound to it) flickering off and back on
+    // between each poll.
+    const fetchDevicesOnce = async (customPath?: string, silent: boolean = false) => {
         try {
             const res: any = await invoke('get_devices', { customPath: customPath || config.scrcpyPath });
+            let newDevices: string[] = [];
 
             if (!res.error) {
-                const newDevices = res.devices as string[];
+                newDevices = res.devices as string[];
                 const prevDevices = prevDevicesRef.current;
 
                 // Identify connections/disconnections
@@ -303,21 +378,148 @@ export function useScrcpy() {
                 if (newDevices.length > 0 && !activeDevice) {
                     setActiveDevice(newDevices[0]);
                 }
-            } else {
-                setLogs(prev => [...prev.slice(-100), t('logs.discoveryError', { error: res.error })]);
+            } else if (!silent) {
+                setLogs(prev => [...prev.slice(-100), t('logs.discoveryError', { error: res.message })]);
+            }
+
+            // Fetch wireless devices broadcasting on the network via mDNS
+            try {
+                const mdnsRes: any = await invoke('get_mdns_devices', { customPath: customPath || config.scrcpyPath });
+                if (mdnsRes && !mdnsRes.error && mdnsRes.services) {
+                    // Keep both service kinds: "_adb-tls-connect" (ready to
+                    // connect) and "_adb-tls-pairing" (a device sitting on the
+                    // "Pair device with pairing code" screen). The UI routes a
+                    // click on either into the pairing modal, code-ready or not.
+                    const parsedMdns = (mdnsRes.services as any[]).filter(s => s.service && (s.service.includes('_adb-tls-connect') || s.service.includes('_adb-tls-pairing')));
+                    setMdnsDevices(parsedMdns);
+                    mdnsDevicesRef.current = parsedMdns;
+
+                    // No client-side auto-connect: adb already reconnects paired
+                    // devices it rediscovers over mDNS from its own keystore
+                    // (transport_mdns: "Don't try to auto-connect if not in the
+                    // keystore"). Once adb reconnects one, get_devices surfaces it
+                    // in the hub. Racing it with our own `adb connect` only opened
+                    // a duplicate ip:port session for the same device; discovery
+                    // here is display-only, plus the pairing modal.
+                } else if (mdnsRes && mdnsRes.error) {
+                    console.warn("[ADB MDNS] Failed to get mdns devices:", mdnsRes.message);
+                    setMdnsDevices([]);
+                    mdnsDevicesRef.current = [];
+                }
+            } catch (mdnsErr) {
+                console.error("Failed to query mDNS devices:", mdnsErr);
             }
         } catch (e) {
             console.error(e);
             setLogs(prev => [...prev.slice(-100), t('logs.errorRefreshingDevices', { error: String(e) })]);
+        }
+    };
+
+    const refreshDevices = async (customPath?: string, silent: boolean = false) => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        try {
+            await fetchDevicesOnce(customPath, silent);
         } finally {
             setIsRefreshing(false);
         }
     };
 
+    // adb reconnects a known device from its own keystore once it resolves it
+    // again over mDNS, but that isn't instant -- right after this app starts
+    // (especially right after an `adb kill-server`, where adb's own mDNS scan
+    // hasn't found anything yet either) or right after pairing succeeds, a
+    // single refresh can still miss it entirely: the very first pass can come
+    // back with no mDNS record at all, not just an unconnected one, so
+    // waiting only for a *known* unconnected device would already be too
+    // late to start watching. Instead, keep refreshing until two consecutive
+    // reads agree (devices and mDNS entries both unchanged) -- that catches
+    // the mDNS scan lagging behind, the reconnect handshake lagging behind
+    // that, or nothing happening at all (which just settles immediately).
+    //
+    // isRefreshing (and the "Syncing..." label bound to it) is held for the
+    // whole poll, not just each individual pass -- otherwise it flips back to
+    // "Refresh" between polls while still silently waiting, then a device can
+    // pop into the hub several seconds after the button already looks idle.
+    const refreshDevicesUntilSettled = async (customPath?: string, attempts: number = 8, delayMs: number = 2000) => {
+        if (isRefreshing) return;
+        setIsRefreshing(true);
+        try {
+            let prevSnapshot = '';
+            for (let i = 0; i <= attempts; i++) {
+                await fetchDevicesOnce(customPath, true);
+                const snapshot = JSON.stringify([prevDevicesRef.current, mdnsDevicesRef.current]);
+                if (snapshot === prevSnapshot) return;
+                prevSnapshot = snapshot;
+                if (i < attempts) await new Promise(r => setTimeout(r, delayMs));
+            }
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
+    // Refs so the interval below always calls the latest closures without
+    // being torn down and recreated every render (which would reset its
+    // timing and, more subtly, could stack overlapping adb calls).
+    const isRefreshingRef = useRef(isRefreshing);
+    useEffect(() => { isRefreshingRef.current = isRefreshing; }, [isRefreshing]);
+    const fetchDevicesOnceRef = useRef(fetchDevicesOnce);
+    useEffect(() => { fetchDevicesOnceRef.current = fetchDevicesOnce; });
+
+    // Keep the hub in sync on its own so a device pairing, reconnecting, or
+    // dropping off doesn't require a manual refresh to notice. This calls
+    // fetchDevicesOnce() directly rather than refreshDevices(), so it never
+    // toggles isRefreshing (no "Syncing..." flicker or buttons disabling
+    // every few seconds) and never fires while a manual refresh or the
+    // settle-poll above is already in flight. It also pauses while the
+    // window is hidden, since there's nothing to update on screen anyway.
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'hidden' || isRefreshingRef.current) return;
+            fetchDevicesOnceRef.current(undefined, true);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Legacy ADB-over-network devices (a plain ip:port from the manual "IP
+    // Connect" field, e.g. an Android TV/set-top box on `adb tcpip`) have no
+    // persistent trust the way wireless debugging's TLS pairing does -- adb
+    // doesn't remember them at all once its server restarts or the
+    // connection drops, so nothing reconnects them the way a paired phone
+    // reconnects on its own over mDNS. Retry anything already in "Recent
+    // Devices" but not currently in the hub, quietly, once on mount and then
+    // every 25s. Unlike the removed client-side auto-connect, this only ever
+    // targets addresses the user has already connected to themselves before,
+    // never anything freshly discovered -- and it calls adb_connect directly
+    // rather than through connectDevice(), so a device that's simply offline
+    // doesn't spam the log with a failure every 25 seconds; a successful
+    // reconnect still surfaces normally through the next device-list poll.
+    useEffect(() => {
+        const tryReconnectHistory = () => {
+            if (document.visibilityState === 'hidden') return;
+            historyDevices.forEach(ip => {
+                if (!prevDevicesRef.current.includes(ip)) {
+                    invoke('adb_connect', { ip, customPath: config.scrcpyPath, silent: true }).catch(() => { });
+                }
+            });
+        };
+        tryReconnectHistory();
+        const interval = setInterval(tryReconnectHistory, 25000);
+        return () => clearInterval(interval);
+    }, [historyDevices, config.scrcpyPath]);
+
     const runScrcpy = async (config: ScrcpyConfig) => {
         try {
             setLogs(prev => [...prev.slice(-100), t('logs.initializingScrcpy', { device: config.device })]);
-            await invoke('run_scrcpy', { config });
+            // Resolve the saved position for this specific device only, so
+            // launching one device never reuses another device's window spot.
+            const savedPos = config.rememberWindowPosition !== false ? windowPositions[config.device] : undefined;
+            const configWithPos: ScrcpyConfig = {
+                ...config,
+                windowX: savedPos?.x,
+                windowY: savedPos?.y
+            };
+            await invoke('run_scrcpy', { config: configWithPos });
         } catch (e: any) {
             setLogs(prev => [...prev.slice(-100), t('logs.failedToStartScrcpy', { error: String(e) })]);
         }
@@ -326,6 +528,19 @@ export function useScrcpy() {
     const stopScrcpy = async (device: string) => {
         try {
             await invoke('stop_scrcpy', { device });
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    /** Snaps the running mirror window for `device` back to the centre of the
+     *  primary screen. Recovers a window whose saved position no longer lands
+     *  on any connected monitor (e.g. it was saved on a second monitor that
+     *  has since been unplugged), so it never gets stuck off-screen with no
+     *  way to reach it. */
+    const recenterMirrorWindow = async (device: string) => {
+        try {
+            await invoke('recenter_scrcpy_window', { device });
         } catch (e) {
             console.error(e);
         }
@@ -389,7 +604,7 @@ export function useScrcpy() {
             const res: any = await invoke('adb_pair', { ip, code, customPath: customPath || config.scrcpyPath });
             if (res.success) {
                 setLogs(prev => [...prev.slice(-100), t('logs.successfullyPaired', { ip })]);
-                await refreshDevices(customPath, true);
+                await refreshDevicesUntilSettled(customPath);
             } else {
                 setLogs(prev => {
                     const msgs = [t('logs.pairingFailed', { message: String(res.message) })];
@@ -563,8 +778,10 @@ export function useScrcpy() {
         downloadProgress,
         status,
         refreshDevices,
+        refreshDevicesUntilSettled,
         runScrcpy,
         stopScrcpy,
+        recenterMirrorWindow,
         downloadScrcpy,
         activeDevice,
         setActiveDevice,
@@ -574,13 +791,12 @@ export function useScrcpy() {
         connectDevice,
         listScrcpyOptions,
         runTerminalCommand,
-        isAutoConnect,
-        toggleAutoConnect,
         runningDevices,
         defaultRecordPath,
         detectedCameras,
         renderDriverSupport,
         isRefreshing,
+        mdnsDevices,
         config,
         setConfig,
         theme,
