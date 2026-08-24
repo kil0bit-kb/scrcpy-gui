@@ -215,7 +215,14 @@ export const ptBR: Translations = {
         keepActiveTooltip: 'Simula atividade do usuário para evitar que a tela entre em modo ocioso (scrcpy v4+).'
     },
     shortcuts: {
-        title: 'Atalhos (Alt +)',
+        title: 'Atalhos',
+        settings: 'Configurações de Atalho',
+        description: 'Escolha um modificador sem conflito para o grupo de atalhos.',
+        modifier: 'Modificador',
+        preview: 'Prévia',
+        reset: 'Restaurar Padrão',
+        captureCustom: 'Pressione uma combinação...',
+        captureHint: 'Segure os modificadores e pressione qualquer tecla',
         full: 'Cheia',
         home: 'Início',
         back: 'Voltar',

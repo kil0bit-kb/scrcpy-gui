@@ -215,7 +215,14 @@ export const zhTW: Translations = {
         keepActiveTooltip: '模擬使用者操作以防止螢幕進入閒置狀態（scrcpy v4+）。'
     },
     shortcuts: {
-        title: '快捷鍵 (Alt +)',
+        title: '快捷鍵',
+        settings: '快捷鍵設定',
+        description: '為這組快捷鍵選擇一個不會衝突的修飾鍵。',
+        modifier: '修飾鍵',
+        preview: '預覽',
+        reset: '恢復預設',
+        captureCustom: '按下自訂組合鍵...',
+        captureHint: '按住修飾鍵，再按任意鍵',
         full: '全螢幕',
         home: '首頁',
         back: '返回',

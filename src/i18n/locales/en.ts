@@ -216,7 +216,14 @@ export const en = {
         keepActiveTooltip: 'Simulates user activity to prevent the screen from going idle (scrcpy v4+).'
     },
     shortcuts: {
-        title: 'Shortcuts (Alt +)',
+        title: 'Shortcuts',
+        settings: 'Shortcut Settings',
+        description: 'Choose a non-conflicting modifier for the shortcut group.',
+        modifier: 'Modifier',
+        preview: 'Preview',
+        reset: 'Reset Defaults',
+        captureCustom: 'Press custom key combo...',
+        captureHint: 'Hold modifiers, then press any key',
         full: 'Full',
         home: 'Home',
         back: 'Back',

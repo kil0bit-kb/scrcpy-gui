@@ -14,6 +14,16 @@ use tokio::process::Child;
 #[cfg(target_os = "linux")]
 use std::os::unix::process::CommandExt;
 
+#[cfg(desktop)]
+use tauri::{
+    image::Image,
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+};
+
+#[cfg(desktop)]
+const TRAY_ICON_BYTES: &[u8] = include_bytes!("../icons/icon.png");
+
 pub struct ScrcpyState {
     pub processes: Mutex<HashMap<String, Child>>,
     pub active_device: Mutex<Option<String>>,
@@ -24,6 +34,59 @@ pub struct ScrcpyState {
     /// own periodic sample, which can be a few seconds stale. See
     /// `resolve_window_pos_to_persist` in commands.rs.
     pub final_capture_hint: Mutex<HashMap<String, (i32, i32)>>,
+}
+
+#[cfg(desktop)]
+fn restore_main_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.set_skip_taskbar(false);
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
+#[cfg(desktop)]
+fn hide_main_window_to_tray(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.set_skip_taskbar(true);
+        let _ = window.hide();
+    }
+}
+
+#[cfg(desktop)]
+fn setup_tray(app: &mut tauri::App) -> tauri::Result<()> {
+    let open_item = MenuItem::with_id(app, "tray-open", "Open / Restore", true, None::<&str>)?;
+    let quit_item = MenuItem::with_id(app, "tray-exit", "Exit", true, None::<&str>)?;
+    let menu = Menu::with_items(app, &[&open_item, &quit_item])?;
+
+    let _tray = TrayIconBuilder::new()
+        .icon(Image::from_bytes(TRAY_ICON_BYTES)?)
+        .menu(&menu)
+        .show_menu_on_left_click(false)
+        .on_tray_icon_event(|tray, event| match event {
+            TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            }
+            | TrayIconEvent::DoubleClick {
+                button: MouseButton::Left,
+                ..
+            } => restore_main_window(tray.app_handle()),
+            _ => {}
+        })
+        .build(app)?;
+
+    app.on_menu_event(|app, event| {
+        if event.id() == "tray-open" {
+            restore_main_window(app);
+        } else if event.id() == "tray-exit" {
+            app.exit(0);
+        }
+    });
+
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -71,6 +134,12 @@ pub fn run() {
     }
 
     let builder = tauri::Builder::default()
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                hide_main_window_to_tray(window.app_handle());
+            }
+        })
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         // The global-shortcut plugin must be registered on the builder (its
@@ -85,6 +154,11 @@ pub fn run() {
                 active_device: Mutex::new(None),
                 final_capture_hint: Mutex::new(HashMap::new()),
             });
+
+            #[cfg(desktop)]
+            {
+                setup_tray(app)?;
+            }
 
             // Ctrl+Alt+Shift+C (recentre the active mirror window) on every
             // platform, plus Ctrl+Alt+Shift+W (drag the borderless window) on
@@ -127,7 +201,6 @@ pub fn run() {
             commands::get_scrcpy_bin_dir,
             commands::run_terminal_command,
             commands::check_scrcpy_update,
-            close_splashscreen,
             get_app_version
         ])
         .run(tauri::generate_context!())
@@ -137,17 +210,4 @@ pub fn run() {
 #[tauri::command]
 fn get_app_version(app: tauri::AppHandle) -> String {
     app.package_info().version.to_string()
-}
-
-#[tauri::command]
-async fn close_splashscreen(window: tauri::Window) {
-    // Get the main window
-    if let Some(main_window) = window.get_webview_window("main") {
-        // Show the main window
-        main_window.show().unwrap();
-    }
-    // Close the splashscreen window
-    if let Some(splash_window) = window.get_webview_window("splashscreen") {
-        splash_window.close().unwrap();
-    }
 }

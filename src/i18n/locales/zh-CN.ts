@@ -215,7 +215,14 @@ export const zhCN: Translations = {
         keepActiveTooltip: '模拟用户操作以防止屏幕进入空闲状态（scrcpy v4+）。'
     },
     shortcuts: {
-        title: '快捷键 (Alt +)',
+        title: '快捷键',
+        settings: '快捷键设置',
+        description: '为这组快捷键选择一个不会冲突的修饰键。',
+        modifier: '修饰键',
+        preview: '预览',
+        reset: '恢复默认',
+        captureCustom: '按下自定义组合键...',
+        captureHint: '按住修饰键，再按任意键',
         full: '全屏',
         home: '主页',
         back: '返回',

@@ -742,6 +742,7 @@ pub struct ScrcpyConfig {
     camera_zoom: Option<f32>,
     background_color: Option<String>,
     keep_active: Option<bool>,
+    shortcut_mod: Option<String>,
     /// Force SDL renderer VSync on/off (anti-tearing). scrcpy 4.0 (SDL3)
     /// disables renderer VSync by default; this re-asserts it via the SDL hint.
     vsync: Option<bool>,
@@ -751,6 +752,40 @@ pub struct ScrcpyConfig {
     /// the user left it, including when relaunching borderless.
     window_x: Option<i32>,
     window_y: Option<i32>,
+}
+
+/// Maps a modifier name to the scrcpy flag value that accepts both left and right variants.
+/// Returns None if any component is unrecognised, so the caller skips the flag entirely.
+fn modifier_to_scrcpy_flag(modifier: &str) -> Option<String> {
+    // Each named key expands to "lkey,rkey" so either physical key works.
+    // For combos (joined with '+'), we emit every L/R combination separated by ','
+    // so any mix of left/right keys triggers the shortcut.
+    let keys: Option<Vec<Vec<&str>>> = modifier.split('+')
+        .map(|m| match m.trim() {
+            "Alt"  => Some(vec!["lalt",  "ralt"]),
+            "Ctrl" => Some(vec!["lctrl", "rctrl"]),
+            _      => None,
+        })
+        .collect();
+
+    keys.map(|groups| {
+        // Cartesian product of the groups to get all valid combinations.
+        let mut combos: Vec<String> = vec![String::new()];
+        for group in &groups {
+            let mut next = Vec::new();
+            for combo in &combos {
+                for key in group {
+                    if combo.is_empty() {
+                        next.push(key.to_string());
+                    } else {
+                        next.push(format!("{}+{}", combo, key));
+                    }
+                }
+            }
+            combos = next;
+        }
+        combos.join(",")
+    })
 }
 
 fn resolve_audio_codec_flag<'a>(config: &'a ScrcpyConfig, audio_codec_override: Option<&'a str>) -> Option<&'a str> {
@@ -1152,9 +1187,11 @@ fn build_scrcpy_args(config: &ScrcpyConfig, video_dir_fallback: Option<String>, 
         let audio_enabled = config.audio_enabled.unwrap_or(true);
         if !audio_enabled { args.push("--no-audio".to_string()); }
         if audio_enabled {
-            if let Some(codec) = resolve_audio_codec_flag(config, audio_codec_override) {
-                args.push(format!("--audio-codec={}", codec));
-            }
+            // "auto" returns None from the resolver; default to aac for broadest compatibility.
+            let codec = resolve_audio_codec_flag(config, audio_codec_override).unwrap_or("aac");
+            args.push(format!("--audio-codec={}", codec));
+            args.push("--audio-bit-rate=128k".to_string());
+            args.push("--audio-buffer=50".to_string());
         }
         if let Some(aot) = config.always_on_top { if aot { args.push("--always-on-top".to_string()); } }
         if let Some(fs) = config.fullscreen { if fs { args.push("--fullscreen".to_string()); } }
@@ -1282,8 +1319,15 @@ fn build_scrcpy_args(config: &ScrcpyConfig, video_dir_fallback: Option<String>, 
                 args.push(format!("--background-color={}", trimmed));
             }
         }
+
+        if let Some(ref shortcut_mod) = config.shortcut_mod {
+            let trimmed = shortcut_mod.trim();
+            if let Some(flag) = modifier_to_scrcpy_flag(trimmed) {
+                args.push(format!("--shortcut-mod={}", flag));
+            }
+        }
     }
-    
+
     args
 }
 
@@ -1660,6 +1704,7 @@ mod tests {
             camera_zoom: None,
             background_color: None,
             keep_active: None,
+            shortcut_mod: None,
             vsync: None,
             window_x: None,
             window_y: None,
@@ -2129,7 +2174,7 @@ pub async fn download_scrcpy(window: Window) -> Result<(), String> {
             downloaded += chunk.len() as u64;
             if total_size > 0 {
                 let percent = (downloaded * 100) / total_size;
-                let _ = window.emit("download-progress", json!({ "percent": percent }));
+                let _ = window.emit("scrcpy-status", json!({ "type": "download-progress", "percent": percent }));
             }
         }
     }

@@ -68,6 +68,7 @@ export interface ScrcpyConfig {
     cameraZoom?: number;
     backgroundColor?: string;
     keepActive?: boolean;
+    shortcutMod?: string;
     vsync?: boolean;
     /** Whether to remember each device's mirror window position and restore
      *  it on the next launch. Defaults to true; some users find a window

@@ -1,5 +1,5 @@
 {
-  "name": "scrcpy-gui-v3",
+  "name": "scrcpy-gui-v4",
   "private": true,
   "version": "4.0.1",
   "type": "module",
@@ -37,7 +37,7 @@
     "postcss": "8.5.12",
     "tailwindcss": "4.2.4",
     "typescript": "6.0.3",
-    "vite": "8.0.10",
+    "vite": "8.0.16",
     "vitest": "4.1.5"
   }
 }
