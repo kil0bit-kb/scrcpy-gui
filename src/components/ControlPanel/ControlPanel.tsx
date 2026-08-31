@@ -44,7 +44,7 @@ const BitrateControl = ({ label, value, onChange }: { label: string, value: numb
     );
 };
 
-const VDSlider = ({ label, value, min, max, unit = "", tooltip, onChange }: { label: string, value: number, min: number, max: number, unit?: string, tooltip?: string, onChange: (val: number) => void }) => {
+const VDSlider = ({ label, value, min, max, unit = "", tooltip, sliderClassName = "", onChange }: { label: string, value: number, min: number, max: number, unit?: string, tooltip?: string, sliderClassName?: string, onChange: (val: number) => void }) => {
     const { t } = useI18n();
     const [localValue, setLocalValue] = useState(value);
     useEffect(() => setLocalValue(value), [value]);
@@ -104,7 +104,7 @@ const VDSlider = ({ label, value, min, max, unit = "", tooltip, onChange }: { la
                     setLocalValue(val);
                     onChange(val);
                 }}
-                className="w-full h-1 accent-primary bg-zinc-800 rounded-full appearance-none cursor-pointer"
+                className={`w-full h-1 accent-primary bg-zinc-800 rounded-full appearance-none cursor-pointer ${sliderClassName}`}
             />
         </div>
     );
@@ -548,6 +548,7 @@ export default function ControlPanel({
                                         value={config.vdWidth || 1920}
                                         min={480} max={3840}
                                         unit="px"
+                                        sliderClassName="vd-width-slider"
                                         onChange={(val: number) => {
                                             if (config.aspectRatioLock && config.vdWidth && config.vdHeight) {
                                                 const ratio = config.vdHeight / config.vdWidth;
@@ -562,6 +563,7 @@ export default function ControlPanel({
                                         value={config.vdHeight || 1080}
                                         min={360} max={2160}
                                         unit="px"
+                                        sliderClassName="vd-height-slider"
                                         onChange={(val: number) => {
                                             if (config.aspectRatioLock && config.vdWidth && config.vdHeight) {
                                                 const ratio = config.vdWidth / config.vdHeight;
@@ -577,6 +579,7 @@ export default function ControlPanel({
                                         value={config.vdDpi || 420}
                                         min={120} max={640}
                                         unit=" DPI"
+                                        sliderClassName="vd-dpi-slider"
                                         onChange={(val: number) => handleChange('vdDpi', val)}
                                     />
                                     <CustomSelect
