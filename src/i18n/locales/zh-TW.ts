@@ -157,6 +157,7 @@ export const zhTW: Translations = {
         ratioLockTitle: '鎖定畫面比例',
         width: '寬',
         height: '高',
+        doubleClickToEdit: '雙擊以輸入數值',
         uiScaling: 'UI 縮放 (DPI)',
         uiScalingTooltip: '低 DPI = 大 UI，高 DPI = 小 UI。',
         quickPresets: '快速預設',

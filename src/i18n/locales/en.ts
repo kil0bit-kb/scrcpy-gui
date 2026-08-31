@@ -158,6 +158,7 @@ export const en = {
         ratioLockTitle: 'Lock Aspect Ratio',
         width: 'Width',
         height: 'Height',
+        doubleClickToEdit: 'Double-click to type a value',
         uiScaling: 'UI Scaling (DPI)',
         uiScalingTooltip: 'Lower DPI = Desktop/Tablet feel (larger UI). Higher DPI = Phone feel (smaller, denser UI).',
         quickPresets: 'Quick Presets',

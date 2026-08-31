@@ -44,24 +44,67 @@ const BitrateControl = ({ label, value, onChange }: { label: string, value: numb
     );
 };
 
-const VDSlider = ({ label, value, min, max, unit = "", onChange }: { label: string, value: number, min: number, max: number, unit?: string, onChange: (val: number) => void }) => {
+const VDSlider = ({ label, value, min, max, unit = "", tooltip, sliderClassName = "", onChange }: { label: string, value: number, min: number, max: number, unit?: string, tooltip?: string, sliderClassName?: string, onChange: (val: number) => void }) => {
+    const { t } = useI18n();
     const [localValue, setLocalValue] = useState(value);
     useEffect(() => setLocalValue(value), [value]);
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [editValue, setEditValue] = useState(String(value));
+
+    const commitEdit = () => {
+        const parsed = parseInt(editValue, 10);
+        if (!isNaN(parsed)) {
+            const clamped = Math.min(max, Math.max(min, parsed));
+            setLocalValue(clamped);
+            onChange(clamped);
+        }
+        setIsEditing(false);
+    };
 
     return (
         <div className="space-y-1">
             <div className="flex justify-between items-center h-4">
-                <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">{label}</label>
-                <span className="text-[10px] font-black text-primary tabular-nums">{localValue}{unit}</span>
+                <div className="flex items-center gap-1.5">
+                    <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">{label}</label>
+                    {tooltip && <Tooltip text={tooltip} placement="top" />}
+                </div>
+                {isEditing ? (
+                    <input
+                        type="number"
+                        autoFocus
+                        min={min}
+                        max={max}
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={commitEdit}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') commitEdit();
+                            else if (e.key === 'Escape') setIsEditing(false);
+                        }}
+                        className="no-spinner w-14 text-[10px] font-black text-primary tabular-nums bg-zinc-800 border border-primary/40 rounded px-1 text-right outline-none"
+                    />
+                ) : (
+                    <span
+                        className="text-[10px] font-black text-primary tabular-nums cursor-text"
+                        onDoubleClick={() => { setEditValue(String(localValue)); setIsEditing(true); }}
+                        title={t('controlPanel.doubleClickToEdit')}
+                    >
+                        {localValue}{unit}
+                    </span>
+                )}
             </div>
             <input
                 type="range"
                 min={min}
                 max={max}
                 value={localValue}
-                onChange={(e) => setLocalValue(parseInt(e.target.value))}
-                onMouseUp={() => onChange(localValue)}
-                className="w-full h-1 accent-primary bg-zinc-800 rounded-full appearance-none cursor-pointer"
+                onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    setLocalValue(val);
+                    onChange(val);
+                }}
+                className={`w-full h-1 accent-primary bg-zinc-800 rounded-full appearance-none cursor-pointer ${sliderClassName}`}
             />
         </div>
     );
@@ -505,6 +548,7 @@ export default function ControlPanel({
                                         value={config.vdWidth || 1920}
                                         min={480} max={3840}
                                         unit="px"
+                                        sliderClassName="vd-width-slider"
                                         onChange={(val: number) => {
                                             if (config.aspectRatioLock && config.vdWidth && config.vdHeight) {
                                                 const ratio = config.vdHeight / config.vdWidth;
@@ -519,6 +563,7 @@ export default function ControlPanel({
                                         value={config.vdHeight || 1080}
                                         min={360} max={2160}
                                         unit="px"
+                                        sliderClassName="vd-height-slider"
                                         onChange={(val: number) => {
                                             if (config.aspectRatioLock && config.vdWidth && config.vdHeight) {
                                                 const ratio = config.vdWidth / config.vdHeight;
@@ -528,23 +573,15 @@ export default function ControlPanel({
                                             }
                                         }}
                                     />
-                                    <div className="space-y-1">
-                                        <div className="flex justify-between items-center h-4">
-                                            <div className="flex items-center gap-1.5">
-                                                <label className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">{t('controlPanel.uiScaling')}</label>
-                                                <Tooltip text={t('controlPanel.uiScalingTooltip')} placement="top" />
-                                            </div>
-                                            <span className="text-[10px] font-black text-primary tabular-nums">{config.vdDpi || 420} DPI</span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min={120}
-                                            max={640}
-                                            value={config.vdDpi || 420}
-                                            onChange={(e) => handleChange('vdDpi', parseInt(e.target.value))}
-                                            className="w-full h-1 accent-primary bg-zinc-800 rounded-full appearance-none cursor-pointer"
-                                        />
-                                    </div>
+                                    <VDSlider
+                                        label={t('controlPanel.uiScaling')}
+                                        tooltip={t('controlPanel.uiScalingTooltip')}
+                                        value={config.vdDpi || 420}
+                                        min={120} max={640}
+                                        unit=" DPI"
+                                        sliderClassName="vd-dpi-slider"
+                                        onChange={(val: number) => handleChange('vdDpi', val)}
+                                    />
                                     <CustomSelect
                                         label={t('controlPanel.quickPresets')}
                                         value={(() => {

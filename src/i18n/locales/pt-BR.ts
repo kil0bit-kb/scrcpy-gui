@@ -157,6 +157,7 @@ export const ptBR: Translations = {
         ratioLockTitle: 'Travar Proporção de Tela',
         width: 'Largura',
         height: 'Altura',
+        doubleClickToEdit: 'Clique duas vezes para digitar um valor',
         uiScaling: 'Escala da UI (DPI)',
         uiScalingTooltip: 'DPI menor = sensação de Desktop/Tablet (UI maior). DPI maior = sensação de Telefone (UI menor e mais densa).',
         quickPresets: 'Predefinições Rápidas',

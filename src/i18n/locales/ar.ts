@@ -160,6 +160,7 @@ export const ar: Translations = {
         ratioLockTitle: 'قفل نسبة العرض',
         width: 'العرض',
         height: 'الارتفاع',
+        doubleClickToEdit: 'انقر نقرًا مزدوجًا لكتابة القيمة',
         uiScaling: 'مقياس الواجهة (DPI)',
         uiScalingTooltip: 'قيمة DPI الأقل تمنح مظهرًا يشبه سطح المكتب أو الجهاز اللوحي، بينما القيمة الأعلى تمنح مظهر الهاتف.',
         quickPresets: 'إعدادات سريعة',

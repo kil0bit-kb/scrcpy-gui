@@ -10,6 +10,8 @@
     "tauri": "tauri",
     "test": "vitest run",
     "lint": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "build:linux": "NO_STRIP=1 APPIMAGE_EXTRACT_AND_RUN=1 LINUXDEPLOY_EXCLUDE_LIBS=libwayland-client.so.0:libwayland-cursor.so.0:libwayland-egl.so.1:libwayland-server.so.0 npm run tauri build"
   },
   "dependencies": {
@@ -35,6 +37,7 @@
     "autoprefixer": "10.5.0",
     "jsdom": "29.1.0",
     "postcss": "8.5.12",
+    "prettier": "^3.9.6",
     "tailwindcss": "4.2.4",
     "typescript": "6.0.3",
     "vite": "8.0.10",

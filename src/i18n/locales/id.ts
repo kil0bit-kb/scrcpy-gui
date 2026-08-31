@@ -157,6 +157,7 @@ languages: {
         ratioLockTitle: 'Kunci Rasio Aspek',
         width: 'Lebar',
         height: 'Tinggi',
+        doubleClickToEdit: 'Klik dua kali untuk mengetik nilai',
         uiScaling: 'Skala UI (DPI)',
         uiScalingTooltip: 'DPI lebih rendah = nuansa Desktop/Tablet (UI lebih besar). DPI lebih tinggi = nuansa Ponsel (UI lebih kecil dan padat).',
         quickPresets: 'Preset Cepat',
