@@ -157,6 +157,7 @@ export const zhCN: Translations = {
         ratioLockTitle: '锁定画面比例',
         width: '宽',
         height: '高',
+        doubleClickToEdit: '双击以输入数值',
         uiScaling: 'UI 缩放 (DPI)',
         uiScalingTooltip: 'DPI 越低界面越大，DPI 越高界面越小。',
         quickPresets: '快速预设',

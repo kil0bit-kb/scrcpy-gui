@@ -162,6 +162,7 @@ export const ru: Translations = {
     ratioLockTitle: 'Зафиксировать соотношение сторон',
     width: 'Ширина',
     height: 'Высота',
+    doubleClickToEdit: 'Дважды щёлкните, чтобы ввести значение',
     uiScaling: 'Масштаб интерфейса (DPI)',
     uiScalingTooltip: 'Ниже DPI = вид как на десктопе/планшете (крупнее интерфейс).\nВыше DPI = вид как на телефоне (меньше и плотнее интерфейс).',
     quickPresets: 'Быстрые пресеты',

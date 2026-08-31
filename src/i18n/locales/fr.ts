@@ -157,6 +157,7 @@ export const fr: Translations = {
         ratioLockTitle: 'Verrouiller le Format',
         width: 'Largeur',
         height: 'Hauteur',
+        doubleClickToEdit: 'Double-cliquez pour saisir une valeur',
         uiScaling: 'Échelle UI (DPI)',
         uiScalingTooltip: 'DPI plus bas = ambiance Bureau/Tablette (UI plus grande). DPI plus élevé = ambiance Téléphone (UI plus petite, dense).',
         quickPresets: 'Préréglages Rapides',

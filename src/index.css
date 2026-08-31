@@ -163,6 +163,17 @@ body {
 [data-mode='light'] .custom-range::-webkit-slider-thumb { border-color: #fafaf9; }
 [data-mode='light'] .custom-range::-moz-range-thumb     { border-color: #fafaf9; }
 
+/* Hide native number input spin buttons (kept: arrow-key increment still works) */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner {
+  appearance: textfield;
+}
+
 /* ── .force-dark: element stays dark regardless of mode ─── */
 /* Used on the terminal/log panel so it always looks like a dark terminal. */
 [data-mode='light'] .force-dark,
