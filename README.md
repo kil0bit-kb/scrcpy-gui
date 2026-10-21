@@ -35,6 +35,9 @@ ScrcpyGUI v4 is a modern, feature-rich GUI for [scrcpy](https://github.com/Genym
   - **Flex Display**: Drag and resize your virtual desktop window dynamically on the fly!
   - **Background Colors**: Customize scrcpy's border and letterbox color with hex values and a live color swatch.
   - **Keep Active**: Periodic user activity simulator preventing device sleep without changing global settings.
+- **🧩 Multi-Device Grid**:
+  - **Launch All**: Mirror every connected device at once in a tiled grid with configurable window size, columns, gap, and start position.
+  - **Auto-Launch on Startup**: Rebuild the grid automatically the next time the app starts.
 - **📁 Fluid File Management**:
   - Drag & drop APK installation or file pushing directly to `/sdcard/Download/`.
 - **🖼️ Premium UX**:

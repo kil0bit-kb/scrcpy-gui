@@ -217,6 +217,24 @@ export const zhTW: Translations = {
         keepActive: '保持活躍',
         keepActiveTooltip: '模擬使用者操作以防止螢幕進入閒置狀態（scrcpy v4+）。'
     },
+    multiDevice: {
+        title: '多裝置網格',
+        subtitle: '以並排版面同時鏡像所有已連線的裝置。',
+        autoLaunch: '啟動時自動開啟',
+        autoLaunchTooltip: 'ScrcpyGUI 啟動並偵測到裝置後，自動在網格中開啟所有已連線的裝置。下次啟動時生效。',
+        launchAllCount: '全部啟動 ({count})',
+        launching: '正在啟動...',
+        allRunning: '所有裝置均已在執行',
+        noDevices: '未連線裝置',
+        windowWidth: '寬度',
+        windowHeight: '高度',
+        columns: '欄數',
+        gap: '間距',
+        startX: '起始 X',
+        startY: '起始 Y',
+        layoutNote: '將忽略已儲存的視窗位置，以保持網格對齊。',
+        pixels: '像素'
+    },
     shortcuts: {
         title: '快捷鍵 (Alt +)',
         full: '全螢幕',
@@ -296,6 +314,7 @@ export const zhTW: Translations = {
         discoveryError: '[系統] 偵測錯誤：{error}',
         errorRefreshingDevices: '[系統] 重新整理裝置錯誤：{error}',
         initializingScrcpy: '[系統] 正在為 {device} 初始化 scrcpy 工作階段...',
+        launchingAllDevices: '[系統] 正在網格中啟動 {count} 個裝置...',
         failedToStartScrcpy: '[錯誤] 啟動 scrcpy 失敗：{error}',
         downloadError: '下載錯誤：{error}',
         downloadComplete: '下載完成',

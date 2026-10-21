@@ -751,6 +751,9 @@ pub struct ScrcpyConfig {
     /// the user left it, including when relaunching borderless.
     window_x: Option<i32>,
     window_y: Option<i32>,
+    window_width: Option<u32>,
+    window_height: Option<u32>,
+    remember_window_position: Option<bool>,
     // v4.1 features
     /// Ignore video encoder size constraints entirely (scrcpy v4.1+).
     /// Useful when the device reports incorrect encoder limits that prevent
@@ -1177,6 +1180,17 @@ fn build_scrcpy_args(config: &ScrcpyConfig, video_dir_fallback: Option<String>, 
                 args.push(format!("--window-y={}", wy));
             }
         }
+
+        if let Some(width) = config.window_width {
+            if width > 0 {
+                args.push(format!("--window-width={}", width));
+            }
+        }
+        if let Some(height) = config.window_height {
+            if height > 0 {
+                args.push(format!("--window-height={}", height));
+            }
+        }
         
         if let Some(rot) = &config.rotation {
             if rot != "0" {
@@ -1295,6 +1309,12 @@ fn build_scrcpy_args(config: &ScrcpyConfig, video_dir_fallback: Option<String>, 
     }
     
     args
+}
+
+fn should_track_window_position(config: &ScrcpyConfig) -> bool {
+    config.session_mode == "mirror"
+        && !config.fullscreen.unwrap_or(false)
+        && config.remember_window_position.unwrap_or(true)
 }
 
 async fn spawn_scrcpy_streams(
@@ -1487,7 +1507,7 @@ pub async fn run_scrcpy(window: Window, state: State<'_, ScrcpyState>, config: S
     // fullscreen session has no meaningful position (it would report the
     // monitor origin, e.g. 0,0), and camera/desktop sessions must not overwrite
     // the mirror window's remembered position.
-    let track_pos = config_mon.session_mode == "mirror" && !config_mon.fullscreen.unwrap_or(false);
+    let track_pos = should_track_window_position(&config_mon);
 
     tokio::spawn(async move {
         let mut current_audio_flag = audio_error_flag;
@@ -1673,6 +1693,10 @@ mod tests {
             vsync: None,
             window_x: None,
             window_y: None,
+            window_width: None,
+            window_height: None,
+            remember_window_position: None,
+            ignore_video_encoder_constraints: None,
         }
     }
 
@@ -1811,6 +1835,49 @@ mod tests {
         let args = build_scrcpy_args(&config, None, None);
         assert!(!args.iter().any(|a| a.starts_with("--window-x")));
         assert!(!args.iter().any(|a| a.starts_with("--window-y")));
+    }
+
+    #[test]
+    fn test_build_scrcpy_args_window_size() {
+        let mut config = base_config("mirror");
+        config.window_width = Some(400);
+        config.window_height = Some(800);
+        let args = build_scrcpy_args(&config, None, None);
+        assert!(args.contains(&"--window-width=400".to_string()));
+        assert!(args.contains(&"--window-height=800".to_string()));
+    }
+
+    #[test]
+    fn test_build_scrcpy_args_window_size_zero_ignored() {
+        let mut config = base_config("mirror");
+        config.window_width = Some(0);
+        config.window_height = Some(0);
+        let args = build_scrcpy_args(&config, None, None);
+        assert!(!args.iter().any(|a| a.starts_with("--window-width")));
+        assert!(!args.iter().any(|a| a.starts_with("--window-height")));
+    }
+
+    #[test]
+    fn test_should_track_window_position_mirror_defaults_true() {
+        let config = base_config("mirror");
+        assert!(should_track_window_position(&config));
+    }
+
+    #[test]
+    fn test_should_track_window_position_respects_opt_out() {
+        let mut config = base_config("mirror");
+        config.remember_window_position = Some(false);
+        assert!(!should_track_window_position(&config));
+    }
+
+    #[test]
+    fn test_should_track_window_position_skips_fullscreen_camera_and_desktop() {
+        let mut fullscreen = base_config("mirror");
+        fullscreen.fullscreen = Some(true);
+        assert!(!should_track_window_position(&fullscreen));
+
+        assert!(!should_track_window_position(&base_config("camera")));
+        assert!(!should_track_window_position(&base_config("desktop")));
     }
 
     #[test]

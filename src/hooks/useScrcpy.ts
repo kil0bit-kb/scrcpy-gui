@@ -1,7 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useI18n } from '../i18n';
+import {
+    buildMultiDeviceConfig,
+    DEFAULT_MULTI_DEVICE_SETTINGS,
+    MULTI_DEVICE_STORAGE_KEY,
+    normalizeMultiDeviceSettings,
+    resolveGridIndex,
+    selectLaunchTargets,
+    shouldRunAutoLaunch,
+} from '../lib/multiDevice';
+import type { MultiDeviceSettings } from '../lib/multiDevice';
 
 export interface RenderDriverOption {
     id: string;
@@ -82,6 +92,10 @@ export interface ScrcpyConfig {
      *  invoking run_scrcpy; never set directly by the UI. */
     windowX?: number;
     windowY?: number;
+    /** Initial window size (pixels) for this launch (--window-width /
+     *  --window-height). Used by the multi-device grid. */
+    windowWidth?: number;
+    windowHeight?: number;
 }
 
 /** Last known screen position of the scrcpy window, per device serial. Keyed
@@ -110,6 +124,8 @@ export function useScrcpy() {
     const [scrcpyStatus, setScrcpyStatus] = useState<{ found: boolean, message: string }>({ found: false, message: t('common.loading') });
     const [isInitialized, setIsInitialized] = useState(false);
     const [runningDevices, setRunningDevices] = useState<string[]>([]);
+    const [multiDeviceSettings, setMultiDeviceSettings] = useState<MultiDeviceSettings>(DEFAULT_MULTI_DEVICE_SETTINGS);
+    const [isLaunchingAll, setIsLaunchingAll] = useState(false);
     const [defaultRecordPath, setDefaultRecordPath] = useState<string>("");
     const [detectedCameras, setDetectedCameras] = useState<{ id: string, name: string }[]>([]);
     const [renderDriverSupport, setRenderDriverSupport] = useState<RenderDriverSupport>({
@@ -161,6 +177,11 @@ export function useScrcpy() {
     const prevDevicesRef = useRef<string[]>([]);
     const mdnsDevicesRef = useRef<MdnsDevice[]>([]);
     const rememberWindowPositionRef = useRef(true);
+    const launchingDevicesRef = useRef<Set<string>>(new Set());
+    const isLaunchingAllRef = useRef(false);
+    const autoLaunchDoneRef = useRef(false);
+    const autoLaunchOnStartRef = useRef(false);
+    const hasRefreshedRef = useRef(false);
     // Serials already queried for a friendly name this session (success or
     // failure) -- guards against re-querying the same device on every 5s
     // background poll. A failed attempt is not retried until the app restarts;
@@ -180,6 +201,17 @@ export function useScrcpy() {
                 setWindowPositions(JSON.parse(savedWindowPositions));
             } catch (e) {
                 console.error("Failed to parse saved window positions", e);
+            }
+        }
+
+        const savedMultiDevice = localStorage.getItem(MULTI_DEVICE_STORAGE_KEY);
+        if (savedMultiDevice) {
+            try {
+                const parsed = normalizeMultiDeviceSettings(JSON.parse(savedMultiDevice));
+                setMultiDeviceSettings(parsed);
+                autoLaunchOnStartRef.current = parsed.autoLaunch;
+            } catch (e) {
+                console.error("Failed to parse saved multi-device settings", e);
             }
         }
 
@@ -230,6 +262,11 @@ export function useScrcpy() {
         if (!isInitialized) return;
         localStorage.setItem('scrcpy_config', JSON.stringify(config));
     }, [config, isInitialized]);
+
+    useEffect(() => {
+        if (!isInitialized) return;
+        localStorage.setItem(MULTI_DEVICE_STORAGE_KEY, JSON.stringify(multiDeviceSettings));
+    }, [multiDeviceSettings, isInitialized]);
 
     // Kept in a ref (not read from `config` directly) so the window-position
     // listener below, which only subscribes once on mount, always sees the
@@ -593,7 +630,7 @@ export function useScrcpy() {
         return () => clearInterval(interval);
     }, [historyDevices, config.scrcpyPath]);
 
-    const runScrcpy = async (config: ScrcpyConfig) => {
+    const runScrcpy = useCallback(async (config: ScrcpyConfig) => {
         try {
             setLogs(prev => [...prev.slice(-100), t('logs.initializingScrcpy', { device: config.device })]);
             // Resolve the saved position for this specific device only, so
@@ -601,14 +638,71 @@ export function useScrcpy() {
             const savedPos = config.rememberWindowPosition !== false ? windowPositions[config.device] : undefined;
             const configWithPos: ScrcpyConfig = {
                 ...config,
-                windowX: savedPos?.x,
-                windowY: savedPos?.y
+                windowX: config.windowX ?? savedPos?.x,
+                windowY: config.windowY ?? savedPos?.y
             };
             await invoke('run_scrcpy', { config: configWithPos });
         } catch (e: any) {
             setLogs(prev => [...prev.slice(-100), t('logs.failedToStartScrcpy', { error: String(e) })]);
         }
-    };
+    }, [t, windowPositions]);
+
+    const updateMultiDeviceSettings = useCallback((patch: Partial<MultiDeviceSettings>) => {
+        // Turning auto-launch off before it fires cancels it; turning it on
+        // never enables a launch mid-session (it applies from the next start).
+        if (patch.autoLaunch === false) autoLaunchOnStartRef.current = false;
+        setMultiDeviceSettings(prev => normalizeMultiDeviceSettings({ ...prev, ...patch }));
+    }, []);
+
+    const launchAllDevices = useCallback(async (): Promise<number> => {
+        if (isLaunchingAllRef.current) return 0;
+        const targets = selectLaunchTargets(devices, runningDevices, launchingDevicesRef.current);
+        if (targets.length === 0) return 0;
+
+        isLaunchingAllRef.current = true;
+        setIsLaunchingAll(true);
+        setLogs(prev => [...prev.slice(-100), t('logs.launchingAllDevices', { count: targets.length })]);
+        targets.forEach(device => launchingDevicesRef.current.add(device));
+
+        try {
+            for (let index = 0; index < targets.length; index++) {
+                const device = targets[index];
+                const targetConfig = buildMultiDeviceConfig(
+                    config,
+                    device,
+                    resolveGridIndex(devices, device, index),
+                    multiDeviceSettings
+                );
+                await runScrcpy(targetConfig);
+            }
+        } finally {
+            targets.forEach(device => launchingDevicesRef.current.delete(device));
+            isLaunchingAllRef.current = false;
+            setIsLaunchingAll(false);
+        }
+
+        return targets.length;
+    }, [config, devices, multiDeviceSettings, runScrcpy, runningDevices, t]);
+
+    // Auto-launch must be decided by the first discovery pass only: if the app
+    // starts with no devices, plugging one in later must not hijack the session.
+    useEffect(() => {
+        if (isRefreshing) hasRefreshedRef.current = true;
+    }, [isRefreshing]);
+
+    useEffect(() => {
+        if (!shouldRunAutoLaunch({
+            enabled: autoLaunchOnStartRef.current,
+            initialized: isInitialized,
+            scrcpyFound: scrcpyStatus.found,
+            refreshing: isRefreshing,
+            hasRefreshed: hasRefreshedRef.current,
+            alreadyLaunched: autoLaunchDoneRef.current,
+        })) return;
+
+        autoLaunchDoneRef.current = true;
+        if (devices.length > 0) void launchAllDevices();
+    }, [devices.length, isInitialized, isRefreshing, launchAllDevices, scrcpyStatus.found]);
 
     const stopScrcpy = async (device: string) => {
         try {
@@ -886,6 +980,10 @@ export function useScrcpy() {
         mdnsDevices,
         config,
         setConfig,
+        multiDeviceSettings,
+        updateMultiDeviceSettings,
+        launchAllDevices,
+        isLaunchingAll,
         theme,
         setTheme,
         colorMode,

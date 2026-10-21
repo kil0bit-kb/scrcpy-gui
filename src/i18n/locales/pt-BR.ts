@@ -217,6 +217,24 @@ export const ptBR: Translations = {
         keepActive: 'Manter Ativo',
         keepActiveTooltip: 'Simula atividade do usuário para evitar que a tela entre em modo ocioso (scrcpy v4+).'
     },
+    multiDevice: {
+        title: 'Grade multi-dispositivo',
+        subtitle: 'Espelhe todos os dispositivos conectados de uma vez em um layout de grade.',
+        autoLaunch: 'Iniciar automaticamente ao abrir',
+        autoLaunchTooltip: 'Quando o ScrcpyGUI iniciar e detectar um dispositivo, abra automaticamente todos os dispositivos conectados na grade. Vale para a próxima inicialização.',
+        launchAllCount: 'Iniciar todos ({count})',
+        launching: 'Iniciando...',
+        allRunning: 'Todos os dispositivos já estão em execução',
+        noDevices: 'Nenhum dispositivo conectado',
+        windowWidth: 'Largura',
+        windowHeight: 'Altura',
+        columns: 'Colunas',
+        gap: 'Espaçamento',
+        startX: 'Início X',
+        startY: 'Início Y',
+        layoutNote: 'As posições salvas das janelas são ignoradas para manter a grade alinhada.',
+        pixels: 'px'
+    },
     shortcuts: {
         title: 'Atalhos (Alt +)',
         full: 'Cheia',
@@ -296,6 +314,7 @@ export const ptBR: Translations = {
         discoveryError: '[SYSTEM] Erro na descoberta: {error}',
         errorRefreshingDevices: '[SYSTEM] Erro ao atualizar dispositivos: {error}',
         initializingScrcpy: '[SYSTEM] Inicializando sessão scrcpy para {device}...',
+        launchingAllDevices: '[SYSTEM] Iniciando {count} dispositivo(s) na grade multi-dispositivo...',
         failedToStartScrcpy: '[ERROR] Falha ao iniciar o scrcpy: {error}',
         downloadError: 'Erro de Download: {error}',
         downloadComplete: 'Download Concluído',

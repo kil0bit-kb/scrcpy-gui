@@ -220,6 +220,24 @@ export const ar: Translations = {
         rememberWindowPosition: 'تذكر موضع النافذة',
         rememberWindowPositionTooltip: 'إعادة فتح نافذة العرض في نفس المكان الذي وُضعت فيه آخر مرة. عطّل هذا الخيار إذا كنت تغيّر الدقة بشكل متكرر، فقد يفسد الموضع المحفوظ. إذا انتهى بها الأمر خارج الشاشة، اضغط Ctrl+Alt+Shift+C لإعادتها إلى المنتصف.'
     },
+    multiDevice: {
+        title: 'شبكة متعددة الأجهزة',
+        subtitle: 'اعرض شاشات جميع الأجهزة المتصلة دفعة واحدة في تخطيط شبكي.',
+        autoLaunch: 'تشغيل تلقائي عند البدء',
+        autoLaunchTooltip: 'عند بدء ScrcpyGUI واكتشاف جهاز، افتح جميع الأجهزة المتصلة في الشبكة تلقائيًا. يسري في المرة القادمة.',
+        launchAllCount: 'تشغيل الكل ({count})',
+        launching: 'جارٍ التشغيل...',
+        allRunning: 'جميع الأجهزة قيد التشغيل',
+        noDevices: 'لا توجد أجهزة متصلة',
+        windowWidth: 'العرض',
+        windowHeight: 'الارتفاع',
+        columns: 'الأعمدة',
+        gap: 'المسافة',
+        startX: 'البداية X',
+        startY: 'البداية Y',
+        layoutNote: 'يتم تجاهل مواضع النوافذ المحفوظة للحفاظ على اصطفاف الشبكة.',
+        pixels: 'بكسل'
+    },
     shortcuts: {
         title: 'الاختصارات (Alt +)',
         full: 'ملء الشاشة',
@@ -299,6 +317,7 @@ export const ar: Translations = {
         discoveryError: '[النظام] خطأ أثناء البحث: {error}',
         errorRefreshingDevices: '[النظام] خطأ أثناء تحديث الأجهزة: {error}',
         initializingScrcpy: '[النظام] جارٍ تهيئة جلسة Scrcpy للجهاز {device}...',
+        launchingAllDevices: '[النظام] جارٍ تشغيل {count} جهاز في الشبكة متعددة الأجهزة...',
         failedToStartScrcpy: '[خطأ] تعذر تشغيل Scrcpy: {error}',
         downloadError: 'خطأ في التنزيل: {error}',
         downloadComplete: 'اكتمل التنزيل',

@@ -217,6 +217,24 @@ export const zhCN: Translations = {
         keepActive: '保持活跃',
         keepActiveTooltip: '模拟用户操作以防止屏幕进入空闲状态（scrcpy v4+）。'
     },
+    multiDevice: {
+        title: '多设备网格',
+        subtitle: '以平铺布局同时镜像所有已连接的设备。',
+        autoLaunch: '启动时自动开启',
+        autoLaunchTooltip: 'ScrcpyGUI 启动并检测到设备后，自动在网格中打开所有已连接的设备。下次启动时生效。',
+        launchAllCount: '全部启动 ({count})',
+        launching: '正在启动...',
+        allRunning: '所有设备均已在运行',
+        noDevices: '未连接设备',
+        windowWidth: '宽度',
+        windowHeight: '高度',
+        columns: '列数',
+        gap: '间距',
+        startX: '起始 X',
+        startY: '起始 Y',
+        layoutNote: '将忽略已保存的窗口位置，以保持网格对齐。',
+        pixels: '像素'
+    },
     shortcuts: {
         title: '快捷键 (Alt +)',
         full: '全屏',
@@ -296,6 +314,7 @@ export const zhCN: Translations = {
         discoveryError: '[系统] 发现错误：{error}',
         errorRefreshingDevices: '[系统] 刷新设备时出错：{error}',
         initializingScrcpy: '[系统] 正在为 {device} 初始化 scrcpy 会话...',
+        launchingAllDevices: '[系统] 正在网格中启动 {count} 个设备...',
         failedToStartScrcpy: '[错误] 启动 scrcpy 失败：{error}',
         downloadError: '下载错误：{error}',
         downloadComplete: '下载完成',

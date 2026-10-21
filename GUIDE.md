@@ -126,6 +126,19 @@ Renderer choices are **capability-aware**:
 - ScrcpyGUI filters options by your host OS.
 - Unsupported options are hidden automatically (e.g. Metal is only shown on macOS).
 
+### 🧩 Multi-Device Grid
+Mirror every connected device at once in a tiled layout - the GUI equivalent of a "launch all devices" script.
+1. Connect as many devices as you want (USB or wireless) and let the device hub list them.
+2. In the **Multi-Device Grid** panel, click **Launch All (n)** to open one scrcpy window per device.
+3. Adjust the grid:
+   - **Width / Height**: initial size of each scrcpy window in pixels (default `400x800`).
+   - **Columns**: how many windows per row before wrapping (default `3`).
+   - **Gap**: space between windows (default `20`).
+   - **Start X / Start Y**: screen coordinates of the first window (default `50,100`).
+4. Optional: enable **Auto-Launch on Startup** to rebuild the grid automatically the next time ScrcpyGUI starts. It runs once per session, after the first device scan.
+
+Grid launches always mirror the device and ignore remembered window positions so the layout stays aligned. When a device already has a window open, **Launch All** only opens the remaining ones.
+
 ### 📂 File Transfers & APKs
 - **Install Apps**: Just drag an `.apk` file from your PC and drop it anywhere into the ScrcpyGUI window.
 - **Transfer Files**: Drag any file into the window to automatically push it to your device's `/sdcard/Download/` folder.

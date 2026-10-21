@@ -6,6 +6,7 @@ import ControlPanel from "./components/ControlPanel";
 import LogPanel from "./components/LogPanel";
 import Header from "./components/Header";
 import SessionBehavior from "./components/SessionBehavior";
+import MultiDevicePanel from "./components/MultiDevicePanel";
 import ShortcutsPanel from "./components/ShortcutsPanel";
 import Footer from "./components/Footer";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -47,6 +48,10 @@ function App() {
     mdnsDevices,
     config,
     setConfig,
+    multiDeviceSettings,
+    updateMultiDeviceSettings,
+    launchAllDevices,
+    isLaunchingAll,
     theme,
     setTheme,
     colorMode,
@@ -382,6 +387,14 @@ function App() {
               </div>
 
               <div className="lg:col-span-3 flex flex-col gap-6">
+                <MultiDevicePanel
+                  devices={devices}
+                  runningDevices={runningDevices}
+                  settings={multiDeviceSettings}
+                  onChange={updateMultiDeviceSettings}
+                  onLaunchAll={launchAllDevices}
+                  isLaunching={isLaunchingAll}
+                />
                 <SessionBehavior config={config} setConfig={setConfig} />
                 <ShortcutsPanel />
               </div>
