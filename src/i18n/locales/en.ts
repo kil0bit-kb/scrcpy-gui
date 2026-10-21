@@ -218,6 +218,24 @@ export const en = {
         keepActive: 'Keep Active',
         keepActiveTooltip: 'Simulates user activity to prevent the screen from going idle (scrcpy v4+).'
     },
+    multiDevice: {
+        title: 'Multi-Device Grid',
+        subtitle: 'Mirror every connected device at once in a tiled layout.',
+        autoLaunch: 'Auto-Launch on Startup',
+        autoLaunchTooltip: 'When ScrcpyGUI starts and a device is detected, open all connected devices in the grid automatically. Takes effect on the next start.',
+        launchAllCount: 'Launch All ({count})',
+        launching: 'Launching...',
+        allRunning: 'All devices are running',
+        noDevices: 'No devices connected',
+        windowWidth: 'Width',
+        windowHeight: 'Height',
+        columns: 'Columns',
+        gap: 'Gap',
+        startX: 'Start X',
+        startY: 'Start Y',
+        layoutNote: 'Saved window positions are ignored so the grid stays aligned.',
+        pixels: 'px'
+    },
     shortcuts: {
         title: 'Shortcuts (Alt +)',
         full: 'Full',
@@ -297,6 +315,7 @@ export const en = {
         discoveryError: '[SYSTEM] Discovery error: {error}',
         errorRefreshingDevices: '[SYSTEM] Error refreshing devices: {error}',
         initializingScrcpy: '[SYSTEM] Initializing scrcpy session for {device}...',
+        launchingAllDevices: '[SYSTEM] Launching {count} device(s) in the multi-device grid...',
         failedToStartScrcpy: '[ERROR] Failed to start scrcpy: {error}',
         downloadError: 'Download Error: {error}',
         downloadComplete: 'Download Complete',

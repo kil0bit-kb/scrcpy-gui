@@ -224,6 +224,25 @@ export const ru: Translations = {
     keepActiveTooltip: 'Имитирует активность пользователя, чтобы экран не отключался (scrcpy v4+).',
   },
 
+  multiDevice: {
+    title: 'Сетка нескольких устройств',
+    subtitle: 'Зеркалируйте все подключённые устройства сразу в виде сетки.',
+    autoLaunch: 'Автозапуск при старте',
+    autoLaunchTooltip: 'При запуске ScrcpyGUI и обнаружении устройства автоматически открывать все подключённые устройства в сетке. Применится при следующем запуске.',
+    launchAllCount: 'Запустить все ({count})',
+    launching: 'Запуск...',
+    allRunning: 'Все устройства уже запущены',
+    noDevices: 'Нет подключённых устройств',
+    windowWidth: 'Ширина',
+    windowHeight: 'Высота',
+    columns: 'Столбцы',
+    gap: 'Отступ',
+    startX: 'Начало X',
+    startY: 'Начало Y',
+    layoutNote: 'Сохранённые позиции окон игнорируются, чтобы сетка оставалась ровной.',
+    pixels: 'пикс.'
+  },
+
   shortcuts: {
     title: 'Горячие клавиши (Alt +)',
     full: 'Полный',
@@ -309,6 +328,7 @@ export const ru: Translations = {
     discoveryError: '[SYSTEM] Ошибка обнаружения: {error}',
     errorRefreshingDevices: '[SYSTEM] Ошибка при обновлении устройств: {error}',
     initializingScrcpy: '[SYSTEM] Инициализация сессии scrcpy для {device}...',
+    launchingAllDevices: '[SYSTEM] Запуск устройств ({count}) в сетке...',
     failedToStartScrcpy: '[ERROR] Не удалось запустить scrcpy: {error}',
     downloadError: 'Ошибка загрузки: {error}',
     downloadComplete: 'Загрузка завершена',

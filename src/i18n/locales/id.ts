@@ -217,6 +217,24 @@ languages: {
         keepActive: 'Tetap Aktif',
         keepActiveTooltip: 'Mirorring dan HP tidak otomatis mati (scrcpy v4+)'
     },
+    multiDevice: {
+        title: 'Grid Multi-Perangkat',
+        subtitle: 'Cerminkan semua perangkat yang terhubung sekaligus dalam tata letak grid.',
+        autoLaunch: 'Luncurkan Otomatis saat Mulai',
+        autoLaunchTooltip: 'Saat ScrcpyGUI dimulai dan perangkat terdeteksi, buka semua perangkat yang terhubung di grid secara otomatis. Berlaku pada peluncuran berikutnya.',
+        launchAllCount: 'Luncurkan Semua ({count})',
+        launching: 'Meluncurkan...',
+        allRunning: 'Semua perangkat sudah berjalan',
+        noDevices: 'Tidak ada perangkat terhubung',
+        windowWidth: 'Lebar',
+        windowHeight: 'Tinggi',
+        columns: 'Kolom',
+        gap: 'Jarak',
+        startX: 'Mulai X',
+        startY: 'Mulai Y',
+        layoutNote: 'Posisi jendela tersimpan diabaikan agar grid tetap sejajar.',
+        pixels: 'px'
+    },
     shortcuts: {
         title: 'Pintasan (Alt +)',
         full: 'Penuh',
@@ -296,6 +314,7 @@ languages: {
         discoveryError: '[SISTEM] Gagal mendeteksi perangkat: {error}',
         errorRefreshingDevices: '[SISTEM] Gagal menemukan perangkat: {error}',
         initializingScrcpy: '[SISTEM] Menginisialisasi sesi scrcpy untuk {device}...',
+        launchingAllDevices: '[SISTEM] Meluncurkan {count} perangkat di grid multi-perangkat...',
         failedToStartScrcpy: '[ERROR] Gagal memulai scrcpy: {error}',
         downloadError: 'Gagal download: {error}',
         downloadComplete: 'Download Selesai',

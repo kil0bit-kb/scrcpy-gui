@@ -217,6 +217,24 @@ export const fr: Translations = {
         keepActive: 'Garder Actif',
         keepActiveTooltip: 'Simule une activité utilisateur pour empêcher l\'écran de se mettre en veille (scrcpy v4+).'
     },
+    multiDevice: {
+        title: 'Grille multi-appareils',
+        subtitle: 'Miroir de tous les appareils connectés en une seule fois dans une disposition en mosaïque.',
+        autoLaunch: 'Lancement auto au démarrage',
+        autoLaunchTooltip: 'Au démarrage de ScrcpyGUI, ouvre automatiquement tous les appareils connectés dans la grille dès qu\'un appareil est détecté. Prend effet au prochain démarrage.',
+        launchAllCount: 'Tout lancer ({count})',
+        launching: 'Lancement...',
+        allRunning: 'Tous les appareils sont lancés',
+        noDevices: 'Aucun appareil connecté',
+        windowWidth: 'Largeur',
+        windowHeight: 'Hauteur',
+        columns: 'Colonnes',
+        gap: 'Espacement',
+        startX: 'Départ X',
+        startY: 'Départ Y',
+        layoutNote: 'Les positions enregistrées sont ignorées pour garder la grille alignée.',
+        pixels: 'px'
+    },
     shortcuts: {
         title: 'Raccourcis (Alt +)',
         full: 'Plein',
@@ -296,6 +314,7 @@ export const fr: Translations = {
         discoveryError: '[SYSTEM] Erreur de détection : {error}',
         errorRefreshingDevices: '[SYSTEM] Erreur lors de l\'actualisation des appareils : {error}',
         initializingScrcpy: '[SYSTEM] Initialisation de la session scrcpy pour {device}...',
+        launchingAllDevices: '[SYSTEM] Lancement de {count} appareil(s) dans la grille multi-appareils...',
         failedToStartScrcpy: '[ERROR] Échec du démarrage de scrcpy : {error}',
         downloadError: 'Erreur de Téléchargement : {error}',
         downloadComplete: 'Téléchargement Terminé',
