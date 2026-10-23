@@ -2,8 +2,8 @@ use tauri::{State, Window, Emitter, Manager};
 use std::process::{Command as StdCommand, Stdio};
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
-use std::path::Path;
-use std::sync::Arc;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, OnceLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use serde_json::json;
 use crate::ScrcpyState;
@@ -37,6 +37,51 @@ pub fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+static USER_DATA_DIR: OnceLock<PathBuf> = OnceLock::new();
+
+/// Called once at startup with the app's local data dir
+/// (e.g. ~/.local/share/com.kb.scrcpy-gui-v3 on Linux).
+pub fn set_user_data_dir(dir: PathBuf) {
+    let _ = USER_DATA_DIR.set(dir);
+}
+
+/// Directory containing the running executable.
+fn exe_dir() -> Option<PathBuf> {
+    std::env::current_exe().ok().and_then(|p| p.parent().map(|p| p.to_path_buf()))
+}
+
+/// Per-user scrcpy-bin folder. Package installs (.deb/.rpm put the binary in
+/// root-owned /usr/bin, AppImage runs from a read-only mount) can't write next
+/// to the executable, so downloads land here instead.
+fn user_bin_dir() -> Option<PathBuf> {
+    USER_DATA_DIR.get().map(|d| d.join("scrcpy-bin"))
+}
+
+fn is_dir_writable(dir: &Path) -> bool {
+    let probe = dir.join(".scrcpy-gui-write-test");
+    match std::fs::File::create(&probe) {
+        Ok(_) => {
+            let _ = std::fs::remove_file(&probe);
+            true
+        }
+        Err(_) => false,
+    }
+}
+
+/// Base directory download_scrcpy installs into: next to the executable for
+/// portable builds, otherwise the per-user data dir.
+fn install_base_dir() -> Result<PathBuf, String> {
+    if let Some(dir) = exe_dir() {
+        if is_dir_writable(&dir) {
+            return Ok(dir);
+        }
+    }
+    let dir = USER_DATA_DIR.get().cloned()
+        .ok_or_else(|| "No writable location found for scrcpy binaries".to_string())?;
+    std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to create {}: {}", dir.display(), e))?;
+    Ok(dir)
+}
+
 fn get_binary_path(binary_name: &str, custom_folder: Option<String>) -> String {
     let exe_ext = std::env::consts::EXE_EXTENSION;
     let binary_filename = if exe_ext.is_empty() {
@@ -55,17 +100,25 @@ fn get_binary_path(binary_name: &str, custom_folder: Option<String>) -> String {
         }
     }
     
-    // 2. Check local scrcpy-bin folder (relative to executable for portable/production)
-    if let Ok(exe_path) = std::env::current_exe() {
-        if let Some(exe_dir) = exe_path.parent() {
-             let local_bin = exe_dir.join("scrcpy-bin").join(&binary_filename);
-             if local_bin.exists() && local_bin.is_file() {
-                 return local_bin.to_string_lossy().to_string();
-             }
+    // 2. Check per-user scrcpy-bin folder (where package installs download to).
+    //    Checked before the exe dir so an in-app update takes precedence over
+    //    an older copy placed next to the executable.
+    if let Some(user_bin) = user_bin_dir() {
+        let local_bin = user_bin.join(&binary_filename);
+        if local_bin.is_file() {
+            return local_bin.to_string_lossy().to_string();
         }
     }
 
-    // 3. Fallback to current working directory scrcpy-bin
+    // 3. Check local scrcpy-bin folder (relative to executable for portable/production)
+    if let Some(exe_dir) = exe_dir() {
+        let local_bin = exe_dir.join("scrcpy-bin").join(&binary_filename);
+        if local_bin.is_file() {
+            return local_bin.to_string_lossy().to_string();
+        }
+    }
+
+    // 4. Fallback to current working directory scrcpy-bin
     if let Ok(current_dir) = std::env::current_dir() {
         let local_bin = current_dir.join("scrcpy-bin").join(&binary_filename);
         if local_bin.exists() && local_bin.is_file() {
@@ -73,7 +126,7 @@ fn get_binary_path(binary_name: &str, custom_folder: Option<String>) -> String {
         }
     }
 
-    // 4. Return simple name to rely on system PATH
+    // 5. Return simple name to rely on system PATH
     binary_name.to_string()
 }
 
@@ -2117,12 +2170,10 @@ pub async fn download_scrcpy(window: Window) -> Result<(), String> {
     }
 
     window.emit("scrcpy-log", format!("[SYSTEM] Found asset: {}", filename)).unwrap();
-    
-    let current_dir = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-        .unwrap_or_else(|| std::env::current_dir().unwrap());
-        
+
+    let current_dir = install_base_dir()?;
+    window.emit("scrcpy-log", format!("[SYSTEM] Installing to: {}", current_dir.join("scrcpy-bin").display())).unwrap();
+
     let temp_archive_path = current_dir.join(format!("scrcpy_temp{}", extension));
     let extract_path = current_dir.join("scrcpy-bin");
     
@@ -2134,12 +2185,17 @@ pub async fn download_scrcpy(window: Window) -> Result<(), String> {
         window.emit("scrcpy-log", format!("[SYSTEM] Downloading: {} MB", total_size / 1024 / 1024)).unwrap();
 
         let mut downloaded: u64 = 0;
+        let mut last_percent: Option<u64> = None;
         while let Some(chunk) = download_resp.chunk().await.map_err(|e| e.to_string())? {
             file.write_all(&chunk).map_err(|e| format!("Failed to write chunk: {}", e))?;
             downloaded += chunk.len() as u64;
             if total_size > 0 {
                 let percent = (downloaded * 100) / total_size;
-                let _ = window.emit("download-progress", json!({ "percent": percent }));
+                if last_percent != Some(percent) {
+                    last_percent = Some(percent);
+                    // The frontend listens for progress as a "scrcpy-status" payload.
+                    let _ = window.emit("scrcpy-status", json!({ "type": "download-progress", "percent": percent }));
+                }
             }
         }
     }
@@ -2221,6 +2277,12 @@ pub async fn save_report(app_handle: tauri::AppHandle, content: String, name: St
 
 #[tauri::command]
 pub async fn get_scrcpy_bin_dir() -> Result<String, String> {
+    if let Some(user_bin) = user_bin_dir() {
+        if user_bin.exists() {
+            return Ok(user_bin.to_string_lossy().to_string());
+        }
+    }
+
     let current_dir = std::env::current_exe()
         .ok()
         .and_then(|p| p.parent().map(|p| p.to_path_buf()))

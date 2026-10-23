@@ -86,6 +86,12 @@ pub fn run() {
                 final_capture_hint: Mutex::new(HashMap::new()),
             });
 
+            // Per-user folder for downloaded scrcpy binaries, used when the
+            // executable's own directory is not writable (.deb/.rpm/AppImage).
+            if let Ok(dir) = app.path().app_local_data_dir() {
+                commands::set_user_data_dir(dir);
+            }
+
             // Ctrl+Alt+Shift+C (recentre the active mirror window) on every
             // platform, plus Ctrl+Alt+Shift+W (drag the borderless window) on
             // Windows. Non-fatal if a shortcut fails to register.
