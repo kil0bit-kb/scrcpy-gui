@@ -9,7 +9,8 @@ export const zhCN: Translations = {
     'zh-TW': '繁體中文',
     ru: 'Русский',
     id: 'Bahasa Indonesia',
-    ar: 'العربية'
+    ar: 'العربية',
+    es: 'Español'
 },
     common: {
         ok: '确定',

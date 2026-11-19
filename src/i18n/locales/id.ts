@@ -9,7 +9,8 @@ languages: {
     'zh-TW': 'Chinois traditionnel',
     ru: 'Русский',
     id: 'Bahasa Indonesia',
-    ar: 'العربية'
+    ar: 'العربية',
+    es: 'Español'
 },
     common: {
         ok: 'OK',
