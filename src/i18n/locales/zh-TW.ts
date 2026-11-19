@@ -9,7 +9,8 @@ export const zhTW: Translations = {
     'zh-TW': '繁體中文',
     ru: 'Русский',
     id: 'Bahasa Indonesia',
-    ar: 'العربية'
+    ar: 'العربية',
+    es: 'Español'
 },
     common: {
         ok: '確定',

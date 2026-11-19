@@ -12,7 +12,8 @@ export const ar: Translations = {
     'zh-TW': 'الصينية التقليدية',
     ru: 'Русский',
     id: 'Bahasa Indonesia',
-    ar: 'العربية'
+    ar: 'العربية',
+    es: 'Español'
    },
     common: {
         ok: 'موافق',

@@ -10,7 +10,8 @@ export const en = {
     'zh-TW': 'Traditional Chinese',
     ru: 'Русский',
     id: 'Bahasa Indonesia',
-    ar: 'Arabic'
+    ar: 'Arabic',
+    es: 'Español'
 },
     common: {
         ok: 'OK',
